@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     if (action === 'reset') {
       // Only admin can reset
       const account = await findAccountByUsername(user.name || '');
-      if (account?.role !== 'admin') {
+      if (account?.role !== 'admin' && account?.role !== 'admin_cdc') {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
 

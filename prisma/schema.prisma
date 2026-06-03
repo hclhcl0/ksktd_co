@@ -32,6 +32,9 @@ model HealthReport {
   tre_em_duoi_6_tuoi Int      @default(0)
   
   created_at         DateTime @default(now())
+
+  @@index([don_vi])
+  @@index([created_at])
 }
 
 model Benchmark {
@@ -99,4 +102,9 @@ model VaccinationReport {
 
   campaign           VaccineCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   vaccine            Vaccine         @relation(fields: [vaccineId], references: [id], onDelete: Cascade)
+
+  @@index([don_vi])
+  @@index([campaignId])
+  @@index([vaccineId])
+  @@index([created_at])
 }

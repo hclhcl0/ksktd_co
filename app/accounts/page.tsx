@@ -13,11 +13,11 @@ export default async function AccountsPage() {
   const session = await auth();
   const role = (session?.user as { role?: string })?.role;
 
-  if (role !== 'admin') redirect('/submit-report');
+  if (role !== 'admin' && role !== 'admin_cdc') redirect('/submit-report');
 
   const accountsList = await getAccounts();
   const unitAccounts = accountsList.filter((a) => a.role === 'unit');
-  const adminAccounts = accountsList.filter((a) => a.role === 'admin');
+  const adminAccounts = accountsList.filter((a) => a.role === 'admin' || a.role === 'admin_cdc');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   try {
     const session = await auth();
     const role = (session?.user as any)?.role;
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'admin_cdc') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
     const role = (session?.user as any)?.role;
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'admin_cdc') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -61,7 +61,7 @@ export async function PUT(request: Request) {
   try {
     const session = await auth();
     const role = (session?.user as any)?.role;
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'admin_cdc') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -92,7 +92,7 @@ export async function DELETE(request: Request) {
   try {
     const session = await auth();
     const role = (session?.user as any)?.role;
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'admin_cdc') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

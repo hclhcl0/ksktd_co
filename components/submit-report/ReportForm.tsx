@@ -80,7 +80,7 @@ export default function ReportForm() {
   const [accounts, setAccounts] = useState<Account[]>([]);
 
   useEffect(() => {
-    if (session?.user && (session.user as any).role === 'admin') {
+    if (session?.user && ((session.user as any).role === 'admin' || (session.user as any).role === 'admin_cdc')) {
       fetch('/api/accounts')
         .then(res => res.json())
         .then(data => {
@@ -119,7 +119,7 @@ export default function ReportForm() {
   const watchedDonVi = watch('don_vi');
 
   useEffect(() => {
-    if (session?.user?.name && (session.user as any).role !== 'admin') {
+    if (session?.user?.name && (session.user as any).role !== 'admin' && (session.user as any).role !== 'admin_cdc') {
       setValue('don_vi', session.user.name);
     }
   }, [session, setValue]);
@@ -153,7 +153,7 @@ export default function ReportForm() {
 
       setSubmitStatus('success');
       reset();
-      if (session?.user?.name && (session.user as any).role !== 'admin') {
+      if (session?.user?.name && (session.user as any).role !== 'admin' && (session.user as any).role !== 'admin_cdc') {
         setValue('don_vi', session.user.name);
       }
 
@@ -171,7 +171,7 @@ export default function ReportForm() {
     reset();
     setSubmitStatus('idle');
     setErrorMessage('');
-    if (session?.user?.name && (session.user as any).role !== 'admin') {
+    if (session?.user?.name && (session.user as any).role !== 'admin' && (session.user as any).role !== 'admin_cdc') {
       setValue('don_vi', session.user.name);
     }
   };
@@ -211,7 +211,7 @@ export default function ReportForm() {
                 <span className="text-red-500">*</span>
               </span>
             </label>
-            {session?.user && (session.user as any).role === 'admin' ? (
+            {session?.user && ((session.user as any).role === 'admin' || (session.user as any).role === 'admin_cdc') ? (
               <select
                 id="don_vi"
                 className={inputCls(!!errors.don_vi)}

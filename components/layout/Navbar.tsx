@@ -39,7 +39,7 @@ export default function Navbar() {
   const displayName = session?.user?.name ?? '';
 
   const visibleMain = mainLinks.filter((l) => {
-    if (l.adminOnly && role !== 'admin') return false;
+    if (l.adminOnly && role !== 'admin' && role !== 'admin_cdc') return false;
     if (l.unitOnly  && role !== 'unit')  return false;
     return true;
   });
@@ -61,8 +61,10 @@ export default function Navbar() {
     await signOut({ callbackUrl: '/login' });
   };
 
-  const roleLabel = role === 'admin' ? 'Quản trị viên' : 'Đơn vị báo cáo';
-  const roleBadgeClass = role === 'admin'
+  const roleLabel = role === 'admin_cdc' ? 'Quản trị viên CDC' : role === 'admin' ? 'Quản trị viên' : 'Đơn vị báo cáo';
+  const roleBadgeClass = role === 'admin_cdc' 
+    ? 'bg-purple-100 text-purple-700' 
+    : role === 'admin'
     ? 'bg-amber-100 text-amber-700'
     : 'bg-blue-100 text-blue-700';
 
@@ -72,7 +74,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href={role === 'admin' ? '/dashboard' : '/submit-report'} className="flex items-center gap-2.5 group">
+          <Link href={(role === 'admin' || role === 'admin_cdc') ? '/dashboard' : '/submit-report'} className="flex items-center gap-2.5 group">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 shadow-md shadow-blue-600/30 group-hover:bg-blue-700 transition-colors">
               <Activity className="w-5 h-5 text-white" />
             </div>
@@ -105,7 +107,7 @@ export default function Navbar() {
               })}
 
               {/* Admin dropdown */}
-              {role === 'admin' && (
+              {(role === 'admin' || role === 'admin_cdc') && (
                 <div className="relative" ref={adminMenuRef}>
                   <button
                     onClick={() => setAdminMenuOpen((v) => !v)}
@@ -244,7 +246,7 @@ export default function Navbar() {
           })}
 
           {/* Admin section (mobile) */}
-          {role === 'admin' && (
+          {(role === 'admin' || role === 'admin_cdc') && (
             <div className="pt-1">
               <p className="px-4 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Quản trị

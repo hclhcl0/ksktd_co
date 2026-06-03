@@ -14,7 +14,7 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
   const router = useRouter();
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
   const [query, setQuery] = useState('');
-  const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'unit'>('all');
+  const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'admin_cdc' | 'unit'>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resettingId, setResettingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -123,7 +123,7 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
           />
         </div>
         <div className="flex gap-2">
-          {(['all', 'unit', 'admin'] as const).map((r) => (
+          {(['all', 'unit', 'admin', 'admin_cdc'] as const).map((r) => (
             <button
               key={r}
               onClick={() => setFilterRole(r)}
@@ -133,7 +133,7 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {r === 'all' ? 'Tất cả' : r === 'unit' ? 'Đơn vị' : 'Admin'}
+              {r === 'all' ? 'Tất cả' : r === 'unit' ? 'Đơn vị' : r === 'admin' ? 'Admin' : 'Admin CDC'}
             </button>
           ))}
           <button
@@ -207,7 +207,12 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                   </div>
                 </td>
                 <td className="px-5 py-3.5">
-                  {account.role === 'admin' ? (
+                  {account.role === 'admin_cdc' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                      <ShieldCheck className="w-3 h-3" />
+                      Quản trị CDC
+                    </span>
+                  ) : account.role === 'admin' ? (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
                       <ShieldCheck className="w-3 h-3" />
                       Quản trị
@@ -266,7 +271,11 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                 <span className="text-xs text-slate-400 mr-2">#{idx + 1}</span>
                 <span className="font-semibold text-slate-800 text-sm">{account.displayName}</span>
               </div>
-              {account.role === 'admin' ? (
+              {account.role === 'admin_cdc' ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
+                  <ShieldCheck className="w-3 h-3" /> Admin CDC
+                </span>
+              ) : account.role === 'admin' ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
                   <ShieldCheck className="w-3 h-3" /> Admin
                 </span>

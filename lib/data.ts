@@ -1,8 +1,8 @@
+import { cache } from 'react';
 import { prisma } from './prisma';
 import { HealthReport as PrismaHealthReport } from '@prisma/client';
 import { DashboardStats, GroupStat, StatKey, StatProgress, UnitProgress, ProgressDashboard } from './types';
-import { getBenchmarks } from './benchmarks';
-import { getAccounts } from './accounts';
+import { getBenchmarks } from './benchmarks_db';
 import { UNIT_TO_FACILITY } from './facilities';
 
 export type HealthReport = {
@@ -41,12 +41,12 @@ export const GROUP_DEFINITIONS: Omit<GroupStat, 'total'>[] = [
   { label: 'Trẻ em dưới 6 tuổi', shortLabel: 'Trẻ < 6T', key: 'tre_em_duoi_6_tuoi', color: '#ec4899' },
 ];
 
-export async function getAllReports(): Promise<HealthReport[]> {
+export const getAllReports = cache(async (): Promise<HealthReport[]> => {
   const reports = await prisma.healthReport.findMany({
     orderBy: { created_at: 'desc' }
   });
   return reports.map(mapPrismaReport);
-}
+});
 
 export async function getReportById(id: string): Promise<HealthReport | undefined> {
   const report = await prisma.healthReport.findUnique({
@@ -151,8 +151,7 @@ const STAT_META: { key: StatKey; label: string; icon: string }[] = [
 
 export async function getProgressDashboard(): Promise<ProgressDashboard> {
   const reports = await getAllReports();
-  const benchmarks = getBenchmarks();
-  const allAccounts = await getAccounts();
+  const benchmarks = await getBenchmarks();
 
   const achievedMap = new Map<string, {
     achieved: Record<StatKey, number>;
@@ -187,10 +186,6 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
       });
     }
   }
-
-  const allUnitNames = allAccounts
-    .filter((a) => a.role === 'unit')
-    .map((a) => a.displayName);
 
   const unitsNoBenchmark: string[] = [];
   const unitsWith0Reports: string[] = [];

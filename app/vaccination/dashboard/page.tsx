@@ -76,7 +76,7 @@ export default function VaccinationDashboard() {
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          {(session?.user as any)?.role === 'admin' && (
+          {((session?.user as any)?.role === 'admin' || (session?.user as any)?.role === 'admin_cdc') && (
             <button 
               onClick={handleExport}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2 shadow-sm"

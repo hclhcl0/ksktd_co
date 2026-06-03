@@ -9,7 +9,7 @@ export async function PUT(
   try {
     const { don_vi: encodedDonVi } = await context.params;
     const session = await auth();
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || ((session.user as any).role !== 'admin' && (session.user as any).role !== 'admin_cdc')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
     }
 

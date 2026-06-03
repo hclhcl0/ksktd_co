@@ -8,7 +8,8 @@ import EditReportModal from '@/components/history/EditReportModal';
 
 export default function HistoryPage() {
   const { data: session } = useSession();
-  const isAdmin = (session?.user as any)?.role === 'admin';
+  const role = (session?.user as any)?.role;
+  const isAdmin = role === 'admin' || role === 'admin_cdc';
   const unitName = session?.user?.name || '';
 
   const [activeTab, setActiveTab] = useState<'health' | 'vaccination'>('health');

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function BenchmarksPage() {
   const session = await auth();
   const role = (session?.user as { role?: string })?.role;
-  if (role !== 'admin') redirect('/submit-report');
+  if (role !== 'admin' && role !== 'admin_cdc') redirect('/submit-report');
 
   const benchmarks = await getBenchmarks();
 

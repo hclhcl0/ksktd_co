@@ -60,7 +60,7 @@ function parseNumber(v: unknown): number | null {
 export async function POST(request: Request) {
   try {
     const session = await auth();
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || ((session.user as any).role !== 'admin' && (session.user as any).role !== 'admin_cdc')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
     }
 
