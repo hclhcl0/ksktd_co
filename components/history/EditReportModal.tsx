@@ -66,7 +66,7 @@ export default function EditReportModal({ isOpen, onClose, report, type, onSaved
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
       
       <div 
-        className="flex min-h-full items-center justify-center p-4"
+        className="flex min-h-screen items-center justify-center p-4"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
