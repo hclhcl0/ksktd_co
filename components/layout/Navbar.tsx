@@ -48,7 +48,7 @@ export default function Navbar() {
     await signOut({ callbackUrl: '/login' });
   };
 
-  const roleLabel = role === 'admin_cdc' ? 'Quản trị viên CDC' : role === 'admin' ? 'Quản trị viên CDC' : 'Đơn vị báo cáo';
+  const roleLabel = role === 'admin_cdc' ? 'Admin' : role === 'admin' ? 'Admin' : 'Đơn vị báo cáo';
   const roleBadgeClass = role === 'admin_cdc' 
     ? 'bg-purple-100 text-purple-700' 
     : role === 'admin'

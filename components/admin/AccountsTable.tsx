@@ -133,7 +133,7 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {r === 'all' ? 'Tất cả' : r === 'unit' ? 'Đơn vị' : 'Admin CDC'}
+              {r === 'all' ? 'Tất cả' : r === 'unit' ? 'Đơn vị' : 'Admin'}
             </button>
           ))}
           <button
@@ -210,7 +210,7 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                   {account.role === 'admin' || account.role === 'admin_cdc' ? (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
                       <ShieldCheck className="w-3 h-3" />
-                      Quản trị CDC
+                      Admin
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
@@ -268,7 +268,7 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
               </div>
               {account.role === 'admin' || account.role === 'admin_cdc' ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
-                  <ShieldCheck className="w-3 h-3" /> Admin CDC
+                  <ShieldCheck className="w-3 h-3" /> Admin
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
