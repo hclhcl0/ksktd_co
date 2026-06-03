@@ -11,7 +11,7 @@ export interface Account {
 // Lấy tất cả tài khoản
 export async function getAccounts(): Promise<Account[]> {
   const accounts = await prisma.account.findMany();
-  return accounts.map(a => ({
+  return accounts.map((a: any) => ({
     username: a.username,
     displayName: a.displayName,
     role: a.role,
