@@ -3,7 +3,7 @@ import { getDashboardStats } from '@/lib/data';
 
 export async function GET() {
   try {
-    const stats = getDashboardStats();
+    const stats = await getDashboardStats();
     return NextResponse.json({ success: true, data: stats });
   } catch {
     return NextResponse.json(

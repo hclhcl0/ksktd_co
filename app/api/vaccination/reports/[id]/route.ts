@@ -14,7 +14,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const deleted = deleteVaccinationReport(id);
+    const deleted = await deleteVaccinationReport(id);
 
     if (!deleted) {
       return NextResponse.json({ success: false, error: 'Không tìm thấy báo cáo' }, { status: 404 });
@@ -39,8 +39,8 @@ export async function PUT(
     
     const { id } = await params;
     // We need to fetch the specific report to check permissions
-    // Since getVaccinationReportById doesn't exist, we can use getVaccinationReports().find
-    const reports = getVaccinationReports();
+    // Since getVaccinationReportById doesn't exist, we can use await getVaccinationReports().find
+    const reports = await getVaccinationReports();
     const report = reports.find(r => r.id === id);
 
     if (!report) {
@@ -59,7 +59,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updated = updateVaccinationReport(id, body);
+    const updated = await updateVaccinationReport(id, body);
     
     return NextResponse.json({ success: true, data: updated });
   } catch {

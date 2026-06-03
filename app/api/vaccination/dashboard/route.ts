@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getCampaigns, getVaccines, getVaccinationReports } from '@/lib/vaccination_data';
-import { GROUP_DEFINITIONS } from '@/lib/data'; // reuse group definitions
+import { GROUP_DEFINITIONS } from '@/lib/constants'; // reuse group definitions
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const campaignId = searchParams.get('campaignId') || undefined;
 
-    const campaigns = getCampaigns();
-    const vaccines = getVaccines();
-    let reports = getVaccinationReports(campaignId);
+    const campaigns = await getCampaigns();
+    const vaccines = await getVaccines();
+    let reports = await getVaccinationReports(campaignId);
 
     // If a specific campaign is requested, calculate progress
     if (campaignId) {
@@ -44,8 +44,8 @@ export async function GET(request: Request) {
     }
 
     // Default: return all campaigns with high-level stats
-    const enrichedCampaigns = campaigns.map(c => {
-      const cReports = getVaccinationReports(c.id);
+    const enrichedCampaigns = await Promise.all(campaigns.map(async c => {
+      const cReports = await getVaccinationReports(c.id);
       let totalAdministered = 0;
       cReports.forEach(r => {
         GROUP_DEFINITIONS.forEach(def => {
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
         totalAllocated,
         totalAdministered,
       };
-    });
+    }));
 
     return NextResponse.json({ campaigns: enrichedCampaigns });
   } catch (error) {

@@ -9,9 +9,9 @@ import Link from 'next/link';
 // Revalidate every 30 seconds
 export const revalidate = 30;
 
-export default function DashboardPage() {
-  const stats = getDashboardStats();
-  const progress = getProgressDashboard();
+export default async function DashboardPage() {
+  const stats = await getDashboardStats();
+  const progress = await getProgressDashboard();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

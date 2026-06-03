@@ -194,7 +194,7 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                       {account.password}
                     </code>
                     <button
-                      onClick={() => handleCopy(account.password, `p-${account.username}`)}
+                      onClick={() => handleCopy(account.password || '', `p-${account.username}`)}
                       className="text-slate-400 hover:text-blue-600 transition-colors"
                       title="Sao chép"
                     >

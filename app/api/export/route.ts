@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const rawReports = getAllReports();
-    const progress = getProgressDashboard();
+    const rawReports = await getAllReports();
+    const progress = await getProgressDashboard();
     
     // Create workbook
     const wb = new ExcelJS.Workbook();

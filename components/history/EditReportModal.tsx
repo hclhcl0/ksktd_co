@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { HealthReport, VaccinationReport } from '@/lib/types';
-import { GROUP_DEFINITIONS } from '@/lib/data';
+import { GROUP_DEFINITIONS } from '@/lib/constants'
 import { X, Save, Loader2 } from 'lucide-react';
 
 interface EditReportModalProps {

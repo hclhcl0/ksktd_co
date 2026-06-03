@@ -15,7 +15,7 @@ export default async function AccountsPage() {
 
   if (role !== 'admin') redirect('/submit-report');
 
-  const accountsList = getAccounts();
+  const accountsList = await getAccounts();
   const unitAccounts = accountsList.filter((a) => a.role === 'unit');
   const adminAccounts = accountsList.filter((a) => a.role === 'admin');
 

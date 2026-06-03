@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const report = getReportById(id);
+    const report = await getReportById(id);
 
     if (!report) {
       return NextResponse.json(
@@ -38,7 +38,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const deleted = deleteReport(id);
+    const deleted = await deleteReport(id);
 
     if (!deleted) {
       return NextResponse.json({ success: false, error: 'Không tìm thấy báo cáo' }, { status: 404 });
@@ -62,7 +62,7 @@ export async function PUT(
     const role = (session?.user as any)?.role;
     
     const { id } = await params;
-    const report = getReportById(id);
+    const report = await getReportById(id);
     if (!report) {
       return NextResponse.json({ success: false, error: 'Không tìm thấy báo cáo' }, { status: 404 });
     }
@@ -80,7 +80,7 @@ export async function PUT(
 
     const body = await request.json();
     // Validate body if needed, but for now we trust the client side format
-    const updated = updateReport(id, body);
+    const updated = await updateReport(id, body);
     
     return NextResponse.json({ success: true, data: updated });
   } catch {

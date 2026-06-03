@@ -8,12 +8,12 @@ export async function GET(request: Request) {
     const type = searchParams.get('type');
 
     if (type === 'vaccines') {
-      return NextResponse.json(getVaccines());
+      return NextResponse.json(await getVaccines());
     }
     
     // Default to campaigns (and include vaccine names)
-    const campaigns = getCampaigns();
-    const vaccines = getVaccines();
+    const campaigns = await getCampaigns();
+    const vaccines = await getVaccines();
     
     const enriched = campaigns.map(c => ({
       ...c,
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     if (action === 'create_vaccine') {
       const { name, description } = body.data;
       if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 });
-      const newV = addVaccine({ name, description: description || '' });
+      const newV = await addVaccine({ name, description: description || '' });
       return NextResponse.json(newV);
     }
 
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Missing required fields or vaccines' }, { status: 400 });
       }
       
-      const newC = addCampaign({ 
+      const newC = await addCampaign({ 
         name, 
         vaccines: vaccines.map((v: any) => ({ vaccineId: v.vaccineId, totalAllocated: Number(v.totalAllocated) })), 
         startDate, 
@@ -84,12 +84,12 @@ export async function DELETE(request: Request) {
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
     if (type === 'vaccine') {
-      deleteVaccine(id);
+      await deleteVaccine(id);
       return NextResponse.json({ success: true });
     }
 
     if (type === 'campaign') {
-      deleteCampaign(id);
+      await deleteCampaign(id);
       return NextResponse.json({ success: true });
     }
 

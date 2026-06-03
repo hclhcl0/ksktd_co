@@ -26,7 +26,7 @@ export default function UserModal({ isOpen, onClose, user, onSaved }: UserModalP
       setFormData({
         username: user.username,
         displayName: user.displayName,
-        password: user.password,
+        password: user.password || '',
         role: user.role
       });
     } else {

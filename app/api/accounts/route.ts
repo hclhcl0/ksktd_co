@@ -12,7 +12,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const safeAccounts = getAccounts().map(a => ({
+    const safeAccounts = (await getAccounts()).map(a => ({
       username: a.username,
       displayName: a.displayName,
       password: a.password,
@@ -40,11 +40,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    if (findAccountByUsername(username)) {
+    if (await findAccountByUsername(username)) {
       return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
     }
 
-    const newAcc = addAccount({
+    const newAcc = await addAccount({
       username: username.toLowerCase(),
       displayName,
       password,
@@ -77,7 +77,7 @@ export async function PUT(request: Request) {
     if (password) updates.password = password; // Only update if provided
     if (accountRole) updates.role = accountRole;
 
-    const updated = updateAccount(username, updates);
+    const updated = await updateAccount(username, updates);
     if (!updated) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
@@ -107,7 +107,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Cannot delete super admin account' }, { status: 400 });
     }
 
-    const success = deleteAccount(username);
+    const success = await deleteAccount(username);
     if (!success) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }

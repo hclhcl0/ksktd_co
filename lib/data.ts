@@ -1,104 +1,99 @@
-import { HealthReport, DashboardStats, GroupStat, StatKey, StatProgress, UnitProgress, ProgressDashboard } from './types';
+import { prisma } from './prisma';
+import { HealthReport as PrismaHealthReport } from '@prisma/client';
+import { DashboardStats, GroupStat, StatKey, StatProgress, UnitProgress, ProgressDashboard } from './types';
 import { getBenchmarks } from './benchmarks';
-import { ACCOUNTS } from './accounts';
+import { getAccounts } from './accounts';
 import { UNIT_TO_FACILITY } from './facilities';
 
-// =========================================================
-// In-memory data store (replaces a real database)
-// Replace this with Prisma calls when ready
-// =========================================================
+export type HealthReport = {
+  id: string;
+  don_vi: string;
+  ngay_kham: string;
+  co_so_y_te: string;
+  nguoi_nop_bao_cao: string;
+  
+  nguoi_cao_tuoi: number;
+  nguoi_khuyet_tat: number;
+  ho_ngheo: number;
+  ho_can_ngheo: number;
+  nguoi_co_cong: number;
+  vung_kho_khan: number;
+  tre_em_duoi_6_tuoi: number;
+  
+  created_at: string;
+};
 
-const GROUP_DEFINITIONS: Omit<GroupStat, 'total'>[] = [
-  {
-    label: 'Người cao tuổi',
-    shortLabel: 'Cao tuổi',
-    key: 'nguoi_cao_tuoi',
-    color: '#3b82f6',
-  },
-  {
-    label: 'Người khuyết tật',
-    shortLabel: 'Khuyết tật',
-    key: 'nguoi_khuyet_tat',
-    color: '#8b5cf6',
-  },
-  {
-    label: 'Hộ nghèo',
-    shortLabel: 'Hộ nghèo',
-    key: 'ho_ngheo',
-    color: '#f59e0b',
-  },
-  {
-    label: 'Hộ cận nghèo',
-    shortLabel: 'Cận nghèo',
-    key: 'ho_can_ngheo',
-    color: '#f97316',
-  },
-  {
-    label: 'Người có công',
-    shortLabel: 'Có công',
-    key: 'nguoi_co_cong',
-    color: '#10b981',
-  },
-  {
-    label: 'Vùng khó khăn / DTTS',
-    shortLabel: 'Vùng khó',
-    key: 'vung_kho_khan',
-    color: '#06b6d4',
-  },
-  {
-    label: 'Trẻ em dưới 6 tuổi',
-    shortLabel: 'Trẻ < 6T',
-    key: 'tre_em_duoi_6_tuoi',
-    color: '#ec4899',
-  },
+// Convert Prisma model to our type
+function mapPrismaReport(r: PrismaHealthReport): HealthReport {
+  return {
+    ...r,
+    created_at: r.created_at.toISOString()
+  };
+}
+
+export const GROUP_DEFINITIONS: Omit<GroupStat, 'total'>[] = [
+  { label: 'Người cao tuổi', shortLabel: 'Cao tuổi', key: 'nguoi_cao_tuoi', color: '#3b82f6' },
+  { label: 'Người khuyết tật', shortLabel: 'Khuyết tật', key: 'nguoi_khuyet_tat', color: '#8b5cf6' },
+  { label: 'Hộ nghèo', shortLabel: 'Hộ nghèo', key: 'ho_ngheo', color: '#f59e0b' },
+  { label: 'Hộ cận nghèo', shortLabel: 'Cận nghèo', key: 'ho_can_ngheo', color: '#f97316' },
+  { label: 'Người có công', shortLabel: 'Có công', key: 'nguoi_co_cong', color: '#10b981' },
+  { label: 'Vùng khó khăn / DTTS', shortLabel: 'Vùng khó', key: 'vung_kho_khan', color: '#06b6d4' },
+  { label: 'Trẻ em dưới 6 tuổi', shortLabel: 'Trẻ < 6T', key: 'tre_em_duoi_6_tuoi', color: '#ec4899' },
 ];
 
-// Module-level store
-let reportsStore: HealthReport[] = [];
-
-export function getAllReports(): HealthReport[] {
-  return [...reportsStore].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+export async function getAllReports(): Promise<HealthReport[]> {
+  const reports = await prisma.healthReport.findMany({
+    orderBy: { created_at: 'desc' }
+  });
+  return reports.map(mapPrismaReport);
 }
 
-export function getReportById(id: string): HealthReport | undefined {
-  return reportsStore.find((r) => r.id === id);
+export async function getReportById(id: string): Promise<HealthReport | undefined> {
+  const report = await prisma.healthReport.findUnique({
+    where: { id }
+  });
+  return report ? mapPrismaReport(report) : undefined;
 }
 
-export function addReport(report: HealthReport): HealthReport {
-  reportsStore.push(report);
-  return report;
+export async function addReport(report: Omit<HealthReport, 'id' | 'created_at'>): Promise<HealthReport> {
+  const newReport = await prisma.healthReport.create({
+    data: report
+  });
+  return mapPrismaReport(newReport);
 }
 
-export function deleteReport(id: string): boolean {
-  const initialLength = reportsStore.length;
-  reportsStore = reportsStore.filter(r => r.id !== id);
-  return reportsStore.length < initialLength;
-}
-
-export function updateReport(id: string, updates: Partial<HealthReport>): HealthReport | null {
-  const idx = reportsStore.findIndex(r => r.id === id);
-  if (idx !== -1) {
-    reportsStore[idx] = { ...reportsStore[idx], ...updates };
-    return reportsStore[idx];
+export async function deleteReport(id: string): Promise<boolean> {
+  try {
+    await prisma.healthReport.delete({
+      where: { id }
+    });
+    return true;
+  } catch (error) {
+    return false;
   }
-  return null;
 }
 
-export function getDashboardStats(): DashboardStats {
-  const reports = getAllReports();
+export async function updateReport(id: string, updates: Partial<HealthReport>): Promise<HealthReport | null> {
+  try {
+    const { id: _id, created_at: _created_at, ...validUpdates } = updates as any;
+    
+    const updated = await prisma.healthReport.update({
+      where: { id },
+      data: validUpdates
+    });
+    return mapPrismaReport(updated);
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const reports = await getAllReports();
 
   const totalExaminations = reports.reduce((sum, r) => {
     return (
-      sum +
-      r.nguoi_cao_tuoi +
-      r.nguoi_khuyet_tat +
-      r.ho_ngheo +
-      r.ho_can_ngheo +
-      r.nguoi_co_cong +
-      r.vung_kho_khan +
-      r.tre_em_duoi_6_tuoi
+      sum + r.nguoi_cao_tuoi + r.nguoi_khuyet_tat + r.ho_ngheo + r.ho_can_ngheo +
+      r.nguoi_co_cong + r.vung_kho_khan + r.tre_em_duoi_6_tuoi
     );
   }, 0);
 
@@ -106,10 +101,9 @@ export function getDashboardStats(): DashboardStats {
 
   const groupTotals: GroupStat[] = GROUP_DEFINITIONS.map((def) => ({
     ...def,
-    total: reports.reduce((sum, r) => sum + r[def.key], 0),
+    total: reports.reduce((sum, r) => sum + (r[def.key] as number), 0),
   }));
 
-  // Aggregate by unit
   const unitMap = new Map<
     string,
     { don_vi: string; co_so_y_te: string; ngay_kham: string; total: number; reportCount: number }
@@ -117,14 +111,8 @@ export function getDashboardStats(): DashboardStats {
 
   for (const r of reports) {
     const existing = unitMap.get(r.don_vi);
-    const rowTotal =
-      r.nguoi_cao_tuoi +
-      r.nguoi_khuyet_tat +
-      r.ho_ngheo +
-      r.ho_can_ngheo +
-      r.nguoi_co_cong +
-      r.vung_kho_khan +
-      r.tre_em_duoi_6_tuoi;
+    const rowTotal = r.nguoi_cao_tuoi + r.nguoi_khuyet_tat + r.ho_ngheo + r.ho_can_ngheo +
+                     r.nguoi_co_cong + r.vung_kho_khan + r.tre_em_duoi_6_tuoi;
 
     if (existing) {
       existing.total += rowTotal;
@@ -151,10 +139,6 @@ export function getDashboardStats(): DashboardStats {
   };
 }
 
-export { GROUP_DEFINITIONS };
-
-// ─── Benchmark Progress ──────────────────────────────────────────────────────
-
 const STAT_META: { key: StatKey; label: string; icon: string }[] = [
   { key: 'nguoi_cao_tuoi',    label: 'Người cao tuổi',         icon: '👴' },
   { key: 'nguoi_khuyet_tat',  label: 'Người khuyết tật',       icon: '♿' },
@@ -165,11 +149,11 @@ const STAT_META: { key: StatKey; label: string; icon: string }[] = [
   { key: 'tre_em_duoi_6_tuoi',label: 'Trẻ em dưới 6 tuổi',    icon: '👶' },
 ];
 
-export function getProgressDashboard(): ProgressDashboard {
-  const reports = getAllReports();
+export async function getProgressDashboard(): Promise<ProgressDashboard> {
+  const reports = await getAllReports();
   const benchmarks = getBenchmarks();
+  const allAccounts = await getAccounts();
 
-  // Gom báo cáo theo đơn vị → cộng gộp tất cả
   const achievedMap = new Map<string, {
     achieved: Record<StatKey, number>;
     reportCount: number;
@@ -204,8 +188,7 @@ export function getProgressDashboard(): ProgressDashboard {
     }
   }
 
-  // Lấy tất cả tên đơn vị từ accounts (93 đơn vị)
-  const allUnitNames = ACCOUNTS
+  const allUnitNames = allAccounts
     .filter((a) => a.role === 'unit')
     .map((a) => a.displayName);
 
@@ -226,7 +209,6 @@ export function getProgressDashboard(): ProgressDashboard {
       return { key, label, icon, achieved, target, pct };
     });
 
-    // % trung bình chỉ tính những chỉ tiêu đã có target > 0
     const validStats = stats.filter((s) => s.pct !== null);
     const overallPct = validStats.length > 0
       ? Math.round(validStats.reduce((sum, s) => sum + (s.pct ?? 0), 0) / validStats.length)
@@ -246,7 +228,6 @@ export function getProgressDashboard(): ProgressDashboard {
     };
   });
 
-  // Sắp xếp: đơn vị có báo cáo lên trước, rồi theo % giảm dần
   units.sort((a, b) => {
     if (a.reportCount > 0 && b.reportCount === 0) return -1;
     if (a.reportCount === 0 && b.reportCount > 0) return 1;

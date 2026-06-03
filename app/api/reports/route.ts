@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const reports = getAllReports();
+    const reports = await getAllReports();
     return NextResponse.json({ success: true, data: reports });
   } catch {
     return NextResponse.json(
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
     };
 
-    addReport(newReport);
+    await addReport(newReport);
 
     return NextResponse.json({ success: true, data: newReport }, { status: 201 });
   } catch {

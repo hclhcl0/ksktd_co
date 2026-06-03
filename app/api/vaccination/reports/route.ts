@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const campaignId = searchParams.get('campaignId') || undefined;
-    return NextResponse.json(getVaccinationReports(campaignId));
+    return NextResponse.json(await getVaccinationReports(campaignId));
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
   }
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     
     // Add report
-    const newReport = addVaccinationReport({
+    const newReport = await addVaccinationReport({
       ...body,
       // override don_vi using session user's display name, except if admin
       // wait, let's keep it simple and just trust body.don_vi or enforce it

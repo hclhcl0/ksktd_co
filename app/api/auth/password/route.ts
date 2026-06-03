@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       }
 
       // Find user to verify old password
-      const account = findAccountByUsername(user.name || '');
+      const account = await findAccountByUsername(user.name || '');
       if (!account) {
         return NextResponse.json({ error: 'Không tìm thấy tài khoản' }, { status: 404 });
       }
@@ -33,13 +33,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Mật khẩu mới phải có ít nhất 6 ký tự' }, { status: 400 });
       }
 
-      updateAccountPassword(account.username, newPassword);
+      await updateAccountPassword(account.username, newPassword);
       return NextResponse.json({ message: 'Đổi mật khẩu thành công' });
     } 
     
     if (action === 'reset') {
       // Only admin can reset
-      const account = findAccountByUsername(user.name || '');
+      const account = await findAccountByUsername(user.name || '');
       if (account?.role !== 'admin') {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
@@ -49,12 +49,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Thiếu tên tài khoản' }, { status: 400 });
       }
 
-      const targetAccount = findAccountByUsername(targetUsername);
+      const targetAccount = await findAccountByUsername(targetUsername);
       if (!targetAccount) {
         return NextResponse.json({ error: 'Không tìm thấy tài khoản cần reset' }, { status: 404 });
       }
 
-      updateAccountPassword(targetAccount.username, '118ldl');
+      await updateAccountPassword(targetAccount.username, '118ldl');
       return NextResponse.json({ message: 'Khôi phục mật khẩu thành công' });
     }
 

@@ -1,0 +1,89 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Account {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  displayName String
+  password    String
+  role        String   // 'admin' or 'unit'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model HealthReport {
+  id                 String   @id @default(cuid())
+  don_vi             String
+  ngay_kham          String
+  co_so_y_te         String
+  nguoi_nop_bao_cao  String
+  
+  nguoi_cao_tuoi     Int      @default(0)
+  nguoi_khuyet_tat   Int      @default(0)
+  ho_ngheo           Int      @default(0)
+  ho_can_ngheo       Int      @default(0)
+  nguoi_co_cong      Int      @default(0)
+  vung_kho_khan      Int      @default(0)
+  tre_em_duoi_6_tuoi Int      @default(0)
+  
+  created_at         DateTime @default(now())
+}
+
+model Vaccine {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  
+  campaigns   CampaignVaccine[]
+  reports     VaccinationReport[]
+}
+
+model VaccineCampaign {
+  id          String   @id @default(cuid())
+  name        String
+  startDate   String
+  endDate     String
+  status      String   // 'active' or 'completed'
+  
+  vaccines    CampaignVaccine[]
+  reports     VaccinationReport[]
+}
+
+model CampaignVaccine {
+  id             String          @id @default(cuid())
+  campaignId     String
+  vaccineId      String
+  totalAllocated Int
+  
+  campaign       VaccineCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  vaccine        Vaccine         @relation(fields: [vaccineId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, vaccineId])
+}
+
+model VaccinationReport {
+  id                 String   @id @default(cuid())
+  campaignId         String
+  vaccineId          String
+  don_vi             String
+  ngay_tiem          String
+  nguoi_nop_bao_cao  String
+  
+  nguoi_cao_tuoi     Int      @default(0)
+  nguoi_khuyet_tat   Int      @default(0)
+  ho_ngheo           Int      @default(0)
+  ho_can_ngheo       Int      @default(0)
+  nguoi_co_cong      Int      @default(0)
+  vung_kho_khan      Int      @default(0)
+  tre_em_duoi_6_tuoi Int      @default(0)
+  
+  created_at         DateTime @default(now())
+
+  campaign           VaccineCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  vaccine            Vaccine         @relation(fields: [vaccineId], references: [id], onDelete: Cascade)
+}

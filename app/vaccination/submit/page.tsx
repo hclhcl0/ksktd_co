@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { VaccineCampaign, CampaignVaccine } from '@/lib/types';
 import { Activity, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import { GROUP_DEFINITIONS } from '@/lib/data'; // for fields
+import { GROUP_DEFINITIONS } from '@/lib/constants'
 
 type EnrichedCampaign = VaccineCampaign & { vaccinesInfo: (CampaignVaccine & { name: string })[] };
 

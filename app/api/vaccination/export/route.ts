@@ -11,12 +11,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Missing campaignId' }, { status: 400 });
     }
 
-    const campaign = getCampaigns().find(c => c.id === campaignId);
+    const campaign = (await getCampaigns()).find(c => c.id === campaignId);
     if (!campaign) {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
 
-    const reports = getVaccinationReports(campaignId);
+    const reports = await getVaccinationReports(campaignId);
 
     const workbook = new ExcelJS.Workbook();
     const ws = workbook.addWorksheet('Chi tiết tiêm chủng');

@@ -22,7 +22,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!username || !password) return null;
 
-        const account = findAccountByUsername(username);
+        const account = await findAccountByUsername(username);
         if (!account) return null;
 
         // So sánh trực tiếp (plaintext) vì mật khẩu mặc định đơn giản
