@@ -2,28 +2,30 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-
-let prismaClient: PrismaClient;
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined;
+  var pgPool: Pool | undefined;
+}
 
 const poolConfig = {
   connectionString: process.env.POSTGRES_URL,
-  max: 3,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  max: 10,
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 10000,
 };
 
-if (process.env.NODE_ENV === 'production') {
-  const pool = new Pool(poolConfig);
-  const adapter = new PrismaPg(pool);
-  prismaClient = new PrismaClient({ adapter });
-} else {
-  if (!globalForPrisma.prisma) {
-    const pool = new Pool(poolConfig);
-    const adapter = new PrismaPg(pool);
-    globalForPrisma.prisma = new PrismaClient({ adapter });
+function createPrisma(): PrismaClient {
+  // Reuse the global pool to avoid creating new connections on every request
+  if (!global.pgPool) {
+    global.pgPool = new Pool(poolConfig);
   }
-  prismaClient = globalForPrisma.prisma;
+  const adapter = new PrismaPg(global.pgPool);
+  return new PrismaClient({ adapter });
 }
 
-export const prisma = prismaClient;
+export const prisma = global.prisma ?? createPrisma();
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma;
+}

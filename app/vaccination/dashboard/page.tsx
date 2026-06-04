@@ -15,7 +15,10 @@ export default function VaccinationDashboard() {
 
   useEffect(() => {
     fetch('/api/vaccination/dashboard')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('Server error');
+        return r.json();
+      })
       .then(data => {
         const list = data.campaigns ?? [];
         setCampaigns(list);
@@ -31,11 +34,15 @@ export default function VaccinationDashboard() {
     if (!selectedCampaign) return;
     setDetailsLoading(true);
     fetch(`/api/vaccination/dashboard?campaignId=${selectedCampaign}`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('Error');
+        return r.json();
+      })
       .then(data => {
         setDetails(data);
         setDetailsLoading(false);
-      });
+      })
+      .catch(() => setDetailsLoading(false));
   }, [selectedCampaign]);
 
   const handleExport = () => {
@@ -43,7 +50,14 @@ export default function VaccinationDashboard() {
     window.open(`/api/vaccination/export?campaignId=${selectedCampaign}`, '_blank');
   };
 
-  if (loading) return <div className="p-8 text-center mt-20">Đang tải dữ liệu...</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-slate-500 text-sm">Đang tải dữ liệu...</p>
+      </div>
+    </div>
+  );
 
   if (campaigns.length === 0) return (
     <div className="max-w-2xl mx-auto px-4 py-24 text-center">
