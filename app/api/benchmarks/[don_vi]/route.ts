@@ -9,11 +9,32 @@ export async function PUT(
   try {
     const { don_vi: encodedDonVi } = await context.params;
     const session = await auth();
-    if (!session || ((session.user as any).role !== 'admin' && (session.user as any).role !== 'admin_cdc')) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Chưa đăng nhập' }, { status: 401 });
     }
 
+    const role = (session.user as any).role;
     const don_vi = decodeURIComponent(encodedDonVi);
+
+    // Admin không được phép ghi đè chỉ tiêu — đơn vị tự chịu trách nhiệm
+    if (role === 'admin' || role === 'admin_cdc') {
+      return NextResponse.json(
+        { success: false, error: 'Admin không có quyền sửa chỉ tiêu. Chỉ đơn vị mới được tự cập nhật chỉ tiêu của mình.' },
+        { status: 403 }
+      );
+    }
+
+    // Đơn vị chỉ được cập nhật chỉ tiêu của chính mình
+    if (role === 'unit') {
+      const unitName = session.user?.name;
+      if (unitName !== don_vi) {
+        return NextResponse.json(
+          { success: false, error: 'Bạn chỉ được cập nhật chỉ tiêu của đơn vị mình.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json();
 
     // Parse values: empty string or null → null, else parseInt
@@ -39,3 +60,4 @@ export async function PUT(
     );
   }
 }
+

@@ -11,19 +11,20 @@ import { signOut, useSession } from 'next-auth/react';
 import ChangePasswordModal from '@/components/auth/ChangePasswordModal';
 
 const mainLinks = [
-  { href: '/dashboard',             label: 'Báo cáo Khám SK',     icon: LayoutDashboard, adminOnly: true  },
-  { href: '/submit-report',         label: 'Nộp báo cáo (Khám SK)', icon: FileText,       unitOnly: true  },
-  { href: '/vaccination/dashboard', label: 'Tiến độ Tiêm chủng',  icon: Activity,        adminOnly: true  },
-  { href: '/vaccination/submit',    label: 'Báo cáo Tiêm chủng',  icon: FileText,        unitOnly: true  },
-  { href: '/history',               label: 'Lịch sử báo cáo',     icon: FileText                          },
-  { href: '/guide',                 label: 'Hướng dẫn',           icon: BookOpen                          },
+  { href: '/dashboard',             label: 'Báo cáo Khám SK',       icon: LayoutDashboard, adminOnly: true  },
+  { href: '/submit-report',         label: 'Nộp báo cáo (Khám SK)', icon: FileText,        unitOnly: true  },
+  { href: '/my-benchmarks',         label: 'Chỉ tiêu của tôi',      icon: Target,          unitOnly: true  },
+  { href: '/vaccination/dashboard', label: 'Tiến độ Tiêm chủng',    icon: Activity,        adminOnly: true  },
+  { href: '/vaccination/submit',    label: 'Báo cáo Tiêm chủng',    icon: FileText,        unitOnly: true  },
+  { href: '/history',               label: 'Lịch sử báo cáo',       icon: FileText                          },
+  { href: '/guide',                 label: 'Hướng dẫn',             icon: BookOpen                          },
 ];
 
 // Các link gom vào dropdown "Quản trị" (chỉ admin)
 const adminMenuLinks = [
-  { href: '/vaccination/campaigns', label: 'Quản lý Đợt tiêm', icon: Activity  },
-  { href: '/benchmarks',            label: 'Chỉ tiêu',          icon: Target    },
-  { href: '/accounts',              label: 'Tài khoản',          icon: Users     },
+  { href: '/vaccination/campaigns', label: 'Quản lý Đợt tiêm',   icon: Activity  },
+  { href: '/benchmarks',            label: 'Xem chỉ tiêu',        icon: Target    },
+  { href: '/accounts',              label: 'Tài khoản',            icon: Users     },
 ];
 
 export default function Navbar() {

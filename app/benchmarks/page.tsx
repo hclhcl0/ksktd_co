@@ -1,15 +1,13 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getBenchmarks } from '@/lib/benchmarks_db';
-import BenchmarksTable from '@/components/admin/BenchmarksTable';
-import BenchmarkImportButton from '@/components/admin/BenchmarkImportButton';
-import { Target, Info, FileSpreadsheet } from 'lucide-react';
+import { Target, Info } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Quản lý chỉ tiêu | CDC',
+  title: 'Xem chỉ tiêu | CDC',
 };
 
 export default async function BenchmarksPage() {
@@ -24,16 +22,35 @@ export default async function BenchmarksPage() {
     [b.nguoi_cao_tuoi, b.nguoi_khuyet_tat, b.ho_ngheo, b.ho_can_ngheo, b.nguoi_co_cong, b.vung_kho_khan, b.tre_em_duoi_6_tuoi].some((v) => v !== null)
   ).length;
 
+  const FIELDS = [
+    { key: 'tre_em_duoi_6_tuoi' as const, short: 'Trẻ <6T'    },
+    { key: 'nguoi_cao_tuoi'     as const, short: 'Cao tuổi'   },
+    { key: 'nguoi_co_cong'      as const, short: 'Có công'    },
+    { key: 'nguoi_khuyet_tat'   as const, short: 'Khuyết tật' },
+    { key: 'ho_ngheo'           as const, short: 'Hộ nghèo'   },
+    { key: 'ho_can_ngheo'       as const, short: 'Cận nghèo'  },
+    { key: 'vung_kho_khan'      as const, short: 'Vùng khó'   },
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
           <Target className="w-7 h-7 text-blue-600" />
-          Quản lý chỉ tiêu
+          Xem chỉ tiêu đơn vị
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Nhập số liệu chỉ tiêu từng nhóm đối tượng cho 93 xã/phường — dùng để tính % hoàn thành trên Dashboard
+          Chỉ tiêu do từng đơn vị tự cập nhật — dùng để tính % hoàn thành trên Dashboard
+        </p>
+      </div>
+
+      {/* Notice */}
+      <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl mb-6">
+        <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-amber-800">
+          <strong>Lưu ý:</strong> Mỗi đơn vị tự chịu trách nhiệm nhập và cập nhật chỉ tiêu của mình
+          tại trang <strong>"Chỉ tiêu của tôi"</strong>. Trang này chỉ để xem — Admin không chỉnh sửa chỉ tiêu thay đơn vị.
         </p>
       </div>
 
@@ -59,62 +76,49 @@ export default async function BenchmarksPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Import từ Excel */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-4">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              Import từ Excel / CSV
-            </h2>
-            <BenchmarkImportButton />
-            
-            <div className="mt-4 pt-4 border-t border-slate-100">
-              <p className="text-xs text-slate-500 font-medium mb-2">📋 Cấu trúc file mẫu:</p>
-              <div className="text-xs text-slate-400 space-y-1 font-mono bg-slate-50 rounded-lg p-2">
-                <p>Cột A: STT</p>
-                <p>Cột B: Tên xã/phường</p>
-                <p>Cột C: Trẻ em dưới 6 tuổi</p>
-                <p>Cột D: Người cao tuổi</p>
-                <p>Cột E: Người có công</p>
-                <p>Cột F: Người khuyết tật</p>
-                <p>Cột G: Hộ nghèo</p>
-                <p>Cột H: Hộ cận nghèo</p>
-                <p>Cột I: Vùng khó khăn/DTTS</p>
-              </div>
-              
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-slate-400 italic">
-                  * Hệ thống tự nhận diện tên cột
-                </p>
-                <a 
-                  href="/api/templates/benchmarks" 
-                  download 
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md transition-colors"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                  Tải file mẫu
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Hướng dẫn nhập tay */}
-        <div className="lg:col-span-2">
-          <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100 h-full">
-            <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-700 space-y-2">
-              <p><strong>Cách 1 — Import Excel:</strong> Tải file Excel/CSV lên bên trái. Hệ thống tự đọc và cập nhật toàn bộ chỉ tiêu cho tất cả đơn vị trong file.</p>
-              <p><strong>Cách 2 — Nhập tay:</strong> Nhấn vào ô số trong bảng bên dưới để chỉnh sửa trực tiếp, nhấn <strong>Enter</strong> để xác nhận, rồi nhấn <strong>💾</strong> cuối hàng để lưu.</p>
-              <p className="text-blue-600 text-xs">💡 Tên đơn vị trong Excel phải khớp với tên trong hệ thống (ví dụ: "Xã Núi Thành", "Phường Tam Kỳ"). Ô trống sẽ được lưu là không có dữ liệu (—).</p>
-            </div>
-          </div>
-        </div>
+      {/* Read-only table */}
+      <div className="overflow-x-auto rounded-2xl border border-slate-100 shadow-sm">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-100">
+              <th className="text-left px-4 py-3 font-semibold text-slate-600 sticky left-0 bg-slate-50 min-w-[180px]">
+                Xã / Phường
+              </th>
+              {FIELDS.map(f => (
+                <th key={f.key} className="text-center px-3 py-3 font-semibold text-slate-600 min-w-[90px] whitespace-nowrap">
+                  {f.short}
+                </th>
+              ))}
+              <th className="text-center px-3 py-3 font-semibold text-slate-600 whitespace-nowrap">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {benchmarks.map((row, idx) => {
+              const hasSome = FIELDS.some(f => row[f.key] !== null);
+              return (
+                <tr key={row.don_vi} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50/20`}>
+                  <td className="px-4 py-2.5 font-medium text-slate-800 sticky left-0 bg-inherit whitespace-nowrap">
+                    {row.don_vi}
+                  </td>
+                  {FIELDS.map(f => (
+                    <td key={f.key} className="px-3 py-2.5 text-center">
+                      <span className={row[f.key] === null ? 'text-slate-300 italic text-xs' : 'text-slate-700 font-medium'}>
+                        {row[f.key] === null ? '—' : (row[f.key] as number).toLocaleString('vi-VN')}
+                      </span>
+                    </td>
+                  ))}
+                  <td className="px-3 py-2.5 text-center">
+                    {hasSome
+                      ? <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Đã nhập</span>
+                      : <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-600 rounded-full">Chưa nhập</span>
+                    }
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-
-      {/* Table */}
-      <BenchmarksTable initialData={benchmarks} />
     </div>
   );
 }
