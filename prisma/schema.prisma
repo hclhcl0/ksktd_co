@@ -133,7 +133,8 @@ model DemographicGroup {
   icon        String?
   color       String?
   isActive    Boolean  @default(true)
-  don_vi      String?  // Nếu null -> dùng chung, nếu có -> dùng riêng cho đơn vị này
+  isGlobal    Boolean  @default(true)
+  appliedUnits String[] @default([])
   createdAt   DateTime @default(now())
 
   healthData  HealthReportData[]

@@ -6,14 +6,14 @@ export async function GET() {
   try {
     const session = await auth();
     const role = (session?.user as any)?.role;
-    const don_vi = session?.user?.name; // unit name
+    const don_vi = session?.user?.name;
 
     let whereClause = {};
     if (role === 'unit' && don_vi) {
       whereClause = {
         OR: [
-          { don_vi: null },
-          { don_vi: don_vi }
+          { isGlobal: true },
+          { appliedUnits: { has: don_vi } }
         ]
       };
     }
@@ -45,7 +45,8 @@ export async function POST(request: Request) {
         icon: data.icon || '👥',
         color: data.color || '#3b82f6',
         isActive: data.isActive ?? true,
-        don_vi: data.don_vi || null
+        isGlobal: data.isGlobal ?? true,
+        appliedUnits: data.appliedUnits || []
       }
     });
 
@@ -68,19 +69,55 @@ export async function PUT(request: Request) {
     if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
     const data = await request.json();
+    
+    // Support partial updates
+    const updateData: any = {
+      name: data.name,
+      shortLabel: data.shortLabel,
+      icon: data.icon,
+      color: data.color,
+      isActive: data.isActive
+    };
+    
+    if (data.isGlobal !== undefined) updateData.isGlobal = data.isGlobal;
+    if (data.appliedUnits !== undefined) updateData.appliedUnits = data.appliedUnits;
+
     const updated = await prisma.demographicGroup.update({
       where: { id },
-      data: {
-        name: data.name,
-        shortLabel: data.shortLabel,
-        icon: data.icon,
-        color: data.color,
-        isActive: data.isActive
-      }
+      data: updateData
     });
 
     return NextResponse.json(updated);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await auth();
+    const role = (session?.user as any)?.role;
+    if (role !== 'admin' && role !== 'admin_cdc') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+
+    // Try to delete, might fail if constrained by foreign keys
+    try {
+      await prisma.demographicGroup.delete({ where: { id } });
+      return NextResponse.json({ success: true });
+    } catch (dbError: any) {
+      // If it fails, do a soft delete (set isActive to false)
+      const updated = await prisma.demographicGroup.update({
+        where: { id },
+        data: { isActive: false }
+      });
+      return NextResponse.json(updated);
+    }
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
   }
 }

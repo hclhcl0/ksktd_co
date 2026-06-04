@@ -30,8 +30,8 @@ export const getUnitActiveGroups = cache(async (don_vi: string): Promise<Demogra
     where: { 
       isActive: true,
       OR: [
-        { don_vi: null },
-        { don_vi: don_vi }
+        { isGlobal: true },
+        { appliedUnits: { has: don_vi } }
       ]
     },
     orderBy: { createdAt: 'asc' }
@@ -222,8 +222,8 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
     const unitData = achievedMap.get(bm.don_vi);
     if (!unitData) unitsWith0Reports.push(bm.don_vi);
 
-    // Filter groups: global groups (don_vi is null) + custom groups for this unit
-    const unitGroups = groups.filter(g => !g.don_vi || g.don_vi === bm.don_vi);
+    // Filter groups: global groups + specific applied units
+    const unitGroups = groups.filter(g => g.isGlobal || g.appliedUnits.includes(bm.don_vi));
 
     const stats: StatProgress[] = unitGroups.map((g) => {
       const achieved = unitData?.achieved[g.key] ?? 0;

@@ -21,11 +21,11 @@ const mainLinks = [
   { href: '/guide',                 label: 'Hướng dẫn',             icon: BookOpen                          },
 ];
 
-// Các link gom vào dropdown "Quản trị" (chỉ admin)
 const adminMenuLinks = [
   { href: '/vaccination/campaigns', label: 'Quản lý Đợt tiêm',   icon: Activity  },
   { href: '/benchmarks',            label: 'Xem chỉ tiêu',        icon: Target    },
   { href: '/accounts',              label: 'Tài khoản',            icon: Users     },
+  { href: '/admin/demographics',    label: 'Cài đặt Đối tượng',   icon: Settings  },
 ];
 
 export default function Navbar() {

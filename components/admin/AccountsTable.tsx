@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ShieldCheck, Building2, Copy, CheckCheck, UserPlus, Pencil, Trash2, Activity, Target } from 'lucide-react';
 import UserModal from './UserModal';
-import { CustomGroupModal } from './CustomGroupModal';
 
 interface AccountsTableProps {
   accounts: Account[];
@@ -20,7 +19,6 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
   const [resettingId, setResettingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<Account | null>(null);
-  const [customGroupUnit, setCustomGroupUnit] = useState<string | null>(null);
 
   const fetchAccounts = () => {
     fetch('/api/accounts?_t=' + Date.now(), { cache: 'no-store' })
@@ -307,15 +305,6 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                           <Activity className="w-3.5 h-3.5" /> Dashboard
                         </button>
                       )}
-                      {account.role === 'unit' && (
-                        <button
-                          onClick={() => setCustomGroupUnit(account.username)}
-                          className="text-xs font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
-                          title="Thêm nhóm chỉ tiêu riêng"
-                        >
-                          <Target className="w-3.5 h-3.5" /> Thêm chỉ tiêu
-                        </button>
-                      )}
                       {account.username !== 'admin' && (
                         <button
                           onClick={() => handleDelete(account.username)}
@@ -419,14 +408,6 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                   )}
                   {account.role === 'unit' && (
                     <button
-                      onClick={() => setCustomGroupUnit(account.username)}
-                      className="text-xs font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
-                    >
-                      <Target className="w-3.5 h-3.5" /> Thêm chỉ tiêu
-                    </button>
-                  )}
-                  {account.role === 'unit' && (
-                    <button
                       onClick={() => handleResetPassword(account.username)}
                       disabled={resettingId === account.username}
                       className="text-xs font-medium text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
@@ -458,15 +439,6 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
         onClose={() => setIsModalOpen(false)}
         user={editingUser}
         onSaved={() => fetchAccounts()}
-      />
-      
-      <CustomGroupModal
-        isOpen={!!customGroupUnit}
-        onClose={() => setCustomGroupUnit(null)}
-        don_vi={customGroupUnit || ''}
-        onSuccess={() => {
-          // fetchAccounts is not strictly needed for groups but good for general refresh
-        }}
       />
     </div>
   );

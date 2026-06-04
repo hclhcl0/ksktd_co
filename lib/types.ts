@@ -6,7 +6,8 @@ export interface DemographicGroup {
   icon: string | null;
   color: string | null;
   isActive: boolean;
-  don_vi: string | null;
+  isGlobal: boolean;
+  appliedUnits: string[];
   createdAt: string | Date;
 }
 
