@@ -10,11 +10,10 @@ import { useState, useRef, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import ChangePasswordModal from '@/components/auth/ChangePasswordModal';
 
-// Link hiển thị thường (không nằm trong dropdown Admin)
 const mainLinks = [
   { href: '/dashboard',             label: 'Báo cáo Khám SK',     icon: LayoutDashboard, adminOnly: true  },
   { href: '/submit-report',         label: 'Nộp báo cáo (Khám SK)', icon: FileText,       unitOnly: true  },
-  { href: '/vaccination/dashboard', label: 'Tiến độ Tiêm chủng',  icon: Activity                          },
+  { href: '/vaccination/dashboard', label: 'Tiến độ Tiêm chủng',  icon: Activity,        adminOnly: true  },
   { href: '/vaccination/submit',    label: 'Báo cáo Tiêm chủng',  icon: FileText,        unitOnly: true  },
   { href: '/history',               label: 'Lịch sử báo cáo',     icon: FileText                          },
   { href: '/guide',                 label: 'Hướng dẫn',           icon: BookOpen                          },
