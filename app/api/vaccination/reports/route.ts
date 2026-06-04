@@ -24,9 +24,7 @@ export async function POST(request: Request) {
     // Add report
     const newReport = await addVaccinationReport({
       ...body,
-      // override don_vi using session user's display name, except if admin
-      // wait, let's keep it simple and just trust body.don_vi or enforce it
-      don_vi: (session.user as any)?.role === 'unit' ? session.user.name : body.don_vi
+      don_vi: body.don_vi || session.user.name || 'Unknown'
     });
 
     return NextResponse.json(newReport, { status: 201 });
