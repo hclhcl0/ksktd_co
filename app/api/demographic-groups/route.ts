@@ -51,8 +51,12 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(newGroup);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to create' }, { status: 500 });
+  } catch (error: any) {
+    console.error('POST /api/demographic-groups error:', error);
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: 'Mã đối tượng (Key) đã tồn tại, vui lòng chọn mã khác!' }, { status: 400 });
+    }
+    return NextResponse.json({ error: error.message || 'Failed to create' }, { status: 500 });
   }
 }
 
