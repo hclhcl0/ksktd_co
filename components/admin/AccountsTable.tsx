@@ -307,6 +307,15 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                           <Activity className="w-3.5 h-3.5" /> Dashboard
                         </button>
                       )}
+                      {account.role === 'unit' && (
+                        <button
+                          onClick={() => setCustomGroupUnit(account.username)}
+                          className="text-xs font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                          title="Thêm nhóm chỉ tiêu riêng"
+                        >
+                          <Target className="w-3.5 h-3.5" /> Thêm chỉ tiêu
+                        </button>
+                      )}
                       {account.username !== 'admin' && (
                         <button
                           onClick={() => handleDelete(account.username)}
