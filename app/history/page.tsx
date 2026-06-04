@@ -82,9 +82,9 @@ export default function HistoryPage() {
 
   const isEditable = (report: HealthReport | VaccinationReport) => {
     if (isAdmin) return true;
-    const today = new Date().toISOString().split('T')[0];
-    const reportDate = new Date(report.created_at).toISOString().split('T')[0];
-    return today === reportDate;
+    const reportDate = new Date(report.created_at);
+    const diffDays = (Date.now() - reportDate.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays <= 7;
   };
 
   const getFilteredHealthReports = () => {
@@ -211,7 +211,7 @@ export default function HistoryPage() {
                                 <Edit2 className="w-4 h-4" />
                               </button>
                             )}
-                            {isAdmin && (
+                            {(isAdmin || isEditable(r)) && (
                               <button onClick={() => handleDelete(r.id, 'health')} title="Xóa báo cáo" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -242,7 +242,7 @@ export default function HistoryPage() {
                                 <Edit2 className="w-4 h-4" />
                               </button>
                             )}
-                            {isAdmin && (
+                            {(isAdmin || isEditable(r)) && (
                               <button onClick={() => handleDelete(r.id, 'vaccination')} title="Xóa báo cáo" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                 <Trash2 className="w-4 h-4" />
                               </button>
