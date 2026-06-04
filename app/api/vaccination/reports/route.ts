@@ -30,6 +30,6 @@ export async function POST(request: Request) {
     return NextResponse.json(newReport, { status: 201 });
   } catch (error: any) {
     console.error('Vaccination report save error:', error);
-    return NextResponse.json({ error: \`Lỗi khi lưu báo cáo: \${error.message}\` }, { status: 500 });
+    return NextResponse.json({ error: `Lỗi khi lưu báo cáo: ${error.message}` }, { status: 500 });
   }
 }
