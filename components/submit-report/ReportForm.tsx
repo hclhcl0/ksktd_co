@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { healthReportSchema, HealthReportFormValues } from '@/lib/validations';
 import { useState, useEffect } from 'react';
@@ -18,57 +18,8 @@ import {
   UserCircle2,
 } from 'lucide-react';
 import { FACILITIES, UNIT_TO_FACILITY } from '@/lib/facilities';
-import { Account } from '@/lib/accounts'; // Only type import
-
-const STAT_FIELDS: {
-  name: keyof Omit<HealthReportFormValues, 'don_vi' | 'ngay_kham' | 'co_so_y_te'>;
-  label: string;
-  description: string;
-  icon: string;
-}[] = [
-  {
-    name: 'nguoi_cao_tuoi',
-    label: 'Người cao tuổi',
-    description: 'Tổng số người cao tuổi được khám',
-    icon: '👴',
-  },
-  {
-    name: 'nguoi_khuyet_tat',
-    label: 'Người khuyết tật',
-    description: 'Tổng số người khuyết tật được khám',
-    icon: '♿',
-  },
-  {
-    name: 'ho_ngheo',
-    label: 'Hộ nghèo',
-    description: 'Người thuộc hộ nghèo theo chuẩn hiện hành',
-    icon: '🏠',
-  },
-  {
-    name: 'ho_can_ngheo',
-    label: 'Hộ cận nghèo',
-    description: 'Người thuộc hộ cận nghèo theo chuẩn hiện hành',
-    icon: '🏡',
-  },
-  {
-    name: 'nguoi_co_cong',
-    label: 'Người có công',
-    description: 'Người có công với cách mạng và thân nhân',
-    icon: '⭐',
-  },
-  {
-    name: 'vung_kho_khan',
-    label: 'Vùng khó khăn / DTTS',
-    description: 'Người sống tại vùng đồng bào DTTS, miền núi, xã đảo, vùng khó khăn',
-    icon: '🏔️',
-  },
-  {
-    name: 'tre_em_duoi_6_tuoi',
-    label: 'Trẻ em dưới 6 tuổi',
-    description: 'Trẻ em dưới 6 tuổi không/chưa đi học mẫu giáo',
-    icon: '👶',
-  },
-];
+import { Account } from '@/lib/accounts';
+import { DemographicGroup } from '@/lib/types';
 
 type SubmitStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -79,6 +30,8 @@ export default function ReportForm() {
   const [errorMessage, setErrorMessage] = useState('');
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [dateLimits, setDateLimits] = useState({ min: '', max: '' });
+  const [groups, setGroups] = useState<DemographicGroup[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
 
   useEffect(() => {
     const now = new Date();
@@ -90,6 +43,18 @@ export default function ReportForm() {
     const min = localMin.toISOString().split('T')[0];
     
     setDateLimits({ min, max });
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/demographic-groups')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setGroups(data.filter((g: any) => g.isActive));
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingGroups(false));
   }, []);
 
   useEffect(() => {
@@ -111,6 +76,7 @@ export default function ReportForm() {
     reset,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<HealthReportFormValues>({
     resolver: zodResolver(healthReportSchema),
@@ -119,15 +85,20 @@ export default function ReportForm() {
       ngay_kham: new Date().toISOString().split('T')[0],
       co_so_y_te: '',
       nguoi_nop_bao_cao: '',
-      nguoi_cao_tuoi: 0,
-      nguoi_khuyet_tat: 0,
-      ho_ngheo: 0,
-      ho_can_ngheo: 0,
-      nguoi_co_cong: 0,
-      vung_kho_khan: 0,
-      tre_em_duoi_6_tuoi: 0,
+      details: [],
     },
   });
+
+  const { fields, replace } = useFieldArray({
+    control,
+    name: 'details',
+  });
+
+  useEffect(() => {
+    if (groups.length > 0) {
+      replace(groups.map(g => ({ groupKey: g.key, count: 0 })));
+    }
+  }, [groups, replace]);
 
   const watchedDonVi = watch('don_vi');
 
@@ -169,6 +140,7 @@ export default function ReportForm() {
       if (session?.user?.name && (session.user as any).role !== 'admin' && (session.user as any).role !== 'admin_cdc') {
         setValue('don_vi', session.user.name);
       }
+      replace(groups.map(g => ({ groupKey: g.key, count: 0 })));
 
       setTimeout(() => {
         router.push('/dashboard');
@@ -184,6 +156,7 @@ export default function ReportForm() {
     reset();
     setSubmitStatus('idle');
     setErrorMessage('');
+    replace(groups.map(g => ({ groupKey: g.key, count: 0 })));
     if (session?.user?.name && (session.user as any).role !== 'admin' && (session.user as any).role !== 'admin_cdc') {
       setValue('don_vi', session.user.name);
     }
@@ -197,6 +170,14 @@ export default function ReportForm() {
          ? 'border-red-400 focus:ring-red-400/40 focus:border-red-400'
          : 'border-slate-200 focus:ring-blue-500/40 focus:border-blue-500'
      }`;
+
+  if (loadingGroups) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -357,11 +338,14 @@ export default function ReportForm() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {STAT_FIELDS.map((field) => {
-            const hasError = !!errors[field.name];
+          {fields.map((field, index) => {
+            const group = groups.find(g => g.key === field.groupKey);
+            if (!group) return null;
+            
+            const hasError = !!errors.details?.[index]?.count;
             return (
               <div
-                key={field.name}
+                key={field.id}
                 className={`relative p-4 rounded-xl border transition-all duration-200 ${
                   hasError
                     ? 'border-red-200 bg-red-50'
@@ -369,15 +353,20 @@ export default function ReportForm() {
                 }`}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{field.icon}</span>
+                  <span className="text-xl">{group.icon || '👥'}</span>
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">{field.label}</p>
-                    <p className="text-[11px] text-slate-400 leading-tight">{field.description}</p>
+                    <p className="text-sm font-semibold text-slate-800">{group.name}</p>
+                    <p className="text-[11px] text-slate-400 leading-tight">{group.shortLabel}</p>
                   </div>
                 </div>
 
                 <input
-                  id={field.name}
+                  type="hidden"
+                  {...register(`details.${index}.groupKey`)}
+                  value={group.key}
+                />
+
+                <input
                   type="number"
                   min={0}
                   step={1}
@@ -388,13 +377,13 @@ export default function ReportForm() {
                         ? 'border-red-400 focus:ring-red-400/40 focus:border-red-400'
                         : 'border-slate-200 focus:ring-blue-500/40 focus:border-blue-500'
                     }`}
-                  {...register(field.name, { valueAsNumber: true })}
+                  {...register(`details.${index}.count`, { valueAsNumber: true })}
                 />
 
                 {hasError && (
                   <p className="text-xs text-red-500 mt-1 flex items-center justify-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    {errors[field.name]?.message}
+                    {errors.details?.[index]?.count?.message}
                   </p>
                 )}
               </div>

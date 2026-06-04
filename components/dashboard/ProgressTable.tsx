@@ -19,6 +19,7 @@ export default function ProgressTable({ data }: ProgressTableProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterFacility, setFilterFacility] = useState('');
+  const [filterUnit, setFilterUnit] = useState('');
   
   // Advanced search and pagination state
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -35,7 +36,7 @@ export default function ProgressTable({ data }: ProgressTableProps) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterFacility, filterStatus, filterProgress, filterDate]);
+  }, [searchTerm, filterFacility, filterUnit, filterStatus, filterProgress, filterDate]);
   
   // Inline edit state
   const [editingUnitId, setEditingUnitId] = useState<string | null>(null);
@@ -82,6 +83,7 @@ export default function ProgressTable({ data }: ProgressTableProps) {
   const filteredUnits = data.units.filter((u) => {
     const matchSearch = u.don_vi.toLowerCase().includes(searchTerm.toLowerCase());
     const matchFacility = filterFacility ? u.co_so_y_te === filterFacility : true;
+    const matchUnit = filterUnit ? u.don_vi === filterUnit : true;
     
     let matchStatus = true;
     if (filterStatus === 'submitted') {
@@ -103,13 +105,14 @@ export default function ProgressTable({ data }: ProgressTableProps) {
       }
     }
 
-    return matchSearch && matchFacility && matchStatus && matchProgress;
+    return matchSearch && matchFacility && matchUnit && matchStatus && matchProgress;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredUnits.length / itemsPerPage));
   const currentUnits = filteredUnits.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const facilities = Array.from(new Set(data.units.map(u => u.co_so_y_te).filter(Boolean))).sort();
+  const unitsList = Array.from(new Set(data.units.map(u => u.don_vi).filter(Boolean))).sort();
 
   const handleExport = () => {
     // Navigate to the API route to trigger download
@@ -167,7 +170,20 @@ export default function ProgressTable({ data }: ProgressTableProps) {
       {/* Advanced Search Panel */}
       {showAdvanced && (
         <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100 animate-in slide-in-from-top-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Lọc theo Đơn vị</label>
+              <select
+                value={filterUnit}
+                onChange={(e) => setFilterUnit(e.target.value)}
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-500"
+              >
+                <option value="">Tất cả đơn vị</option>
+                {unitsList.map(u => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Lọc theo Cơ sở y tế</label>
               <select

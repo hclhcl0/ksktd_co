@@ -26,6 +26,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Khi nâng cấp: dùng bcrypt.compare(password, account.hashedPassword)
         if (password !== account.password) return null;
 
+        if (account.status && account.status !== 'approved') {
+          throw new Error(account.status === 'pending' ? 'Tài khoản đang chờ duyệt' : 'Tài khoản đã bị từ chối');
+        }
+
         return {
           id: account.username,
           name: account.displayName,

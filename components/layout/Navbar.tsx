@@ -12,6 +12,7 @@ import ChangePasswordModal from '@/components/auth/ChangePasswordModal';
 
 const mainLinks = [
   { href: '/dashboard',             label: 'Báo cáo Khám SK',       icon: LayoutDashboard, adminOnly: true  },
+  { href: '/my-dashboard',          label: 'Dashboard lũy kế',      icon: LayoutDashboard, unitOnly: true  },
   { href: '/submit-report',         label: 'Nộp báo cáo (Khám SK)', icon: FileText,        unitOnly: true  },
   { href: '/my-benchmarks',         label: 'Chỉ tiêu của tôi',      icon: Target,          unitOnly: true  },
   { href: '/vaccination/dashboard', label: 'Tiến độ Tiêm chủng',    icon: Activity,        adminOnly: true  },

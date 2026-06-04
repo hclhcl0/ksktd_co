@@ -173,7 +173,7 @@ export default function HistoryPage() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-slate-500 flex flex-col items-center">
+          <div className="p-12 text-center text-slate-50 flex flex-col items-center">
             <Activity className="w-8 h-8 animate-pulse text-indigo-400 mb-2" />
             Đang tải dữ liệu...
           </div>
@@ -197,7 +197,7 @@ export default function HistoryPage() {
                     <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500 italic">Không có báo cáo nào khớp với bộ lọc.</td></tr>
                   ) : (
                     filteredHealth.map(r => {
-                      const total = r.nguoi_cao_tuoi + r.nguoi_khuyet_tat + r.ho_ngheo + r.ho_can_ngheo + r.nguoi_co_cong + r.vung_kho_khan + r.tre_em_duoi_6_tuoi;
+                      const total = r.details.reduce((acc, curr) => acc + curr.count, 0);
                       return (
                         <tr key={r.id} className="hover:bg-slate-50 transition-colors">
                           <td className="px-6 py-4 font-medium text-slate-800">{r.don_vi}</td>
@@ -223,10 +223,10 @@ export default function HistoryPage() {
                   )
                 ) : (
                   filteredVac.length === 0 ? (
-                    <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500 italic">Không có báo cáo nào khớp với bộ lọc.</td></tr>
+                    <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500 italic">Không có báo cáo nào khớp với bộ lọc.</td></tr>
                   ) : (
                     filteredVac.map(r => {
-                      const total = r.nguoi_cao_tuoi + r.nguoi_khuyet_tat + r.ho_ngheo + r.ho_can_ngheo + r.nguoi_co_cong + r.vung_kho_khan + r.tre_em_duoi_6_tuoi;
+                      const total = r.details.reduce((acc, curr) => acc + curr.count, 0);
                       const vName = vaccines.find(v => v.id === r.vaccineId)?.name || 'Unknown';
                       return (
                         <tr key={r.id} className="hover:bg-slate-50 transition-colors">

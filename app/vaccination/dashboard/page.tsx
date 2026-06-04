@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { VaccineCampaign, VaccinationReport } from '@/lib/types';
+import { VaccinationReport } from '@/lib/types';
 import { Activity, Download, FileSpreadsheet, Percent, ShieldCheck } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import PageHeader from '@/components/layout/PageHeader';
@@ -193,7 +193,7 @@ export default function VaccinationDashboard() {
                     <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500 italic">Chưa có báo cáo nào.</td></tr>
                   ) : (
                     details.reports.map((r: VaccinationReport) => {
-                      const totalMui = r.nguoi_cao_tuoi + r.nguoi_khuyet_tat + r.ho_ngheo + r.ho_can_ngheo + r.nguoi_co_cong + r.vung_kho_khan + r.tre_em_duoi_6_tuoi;
+                      const totalMui = r.details.reduce((acc, curr) => acc + curr.count, 0);
                       const vName = details.vaccinesProgress.find((vp: any) => vp.vaccineId === r.vaccineId)?.vaccineName || 'Unknown';
                       return (
                         <tr key={r.id} className="hover:bg-slate-50 transition-colors">

@@ -1,37 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { upsertBenchmark } from '@/lib/benchmarks_db';
+import { prisma } from '@/lib/prisma';
 import * as XLSX from 'xlsx';
 
 export const dynamic = 'force-dynamic';
-
-// Mapping tên cột từ Excel → field trong DB
-// Hỗ trợ nhiều cách viết khác nhau (viết hoa, viết thường, viết tắt)
-const COLUMN_KEYWORDS: Record<string, string> = {
-  'cao tuổi':       'nguoi_cao_tuoi',
-  'người cao':      'nguoi_cao_tuoi',
-  'nctuoi':         'nguoi_cao_tuoi',
-  'khuyết tật':     'nguoi_khuyet_tat',
-  'khuyet tat':     'nguoi_khuyet_tat',
-  'nkt':            'nguoi_khuyet_tat',
-  'hộ nghèo':       'ho_ngheo',
-  'ho ngheo':       'ho_ngheo',
-  'nghèo ':         'ho_ngheo',
-  'cận nghèo':      'ho_can_ngheo',
-  'can ngheo':      'ho_can_ngheo',
-  'người có công':  'nguoi_co_cong',
-  'co cong':        'nguoi_co_cong',
-  'nguoi co cong':  'nguoi_co_cong',
-  'vùng':           'vung_kho_khan',
-  'dtts':           'vung_kho_khan',
-  'khó khăn':       'vung_kho_khan',
-  'kho khan':       'vung_kho_khan',
-  'trẻ em':         'tre_em_duoi_6_tuoi',
-  'tre em':         'tre_em_duoi_6_tuoi',
-  'dưới 6':         'tre_em_duoi_6_tuoi',
-  'duoi 6':         'tre_em_duoi_6_tuoi',
-  '<6':             'tre_em_duoi_6_tuoi',
-};
 
 function normalizeText(s: string): string {
   return s
@@ -40,14 +13,6 @@ function normalizeText(s: string): string {
     .replace(/đ/gi, 'd')
     .toLowerCase()
     .trim();
-}
-
-function detectField(header: string): string | null {
-  const norm = normalizeText(header);
-  for (const [kw, field] of Object.entries(COLUMN_KEYWORDS)) {
-    if (norm.includes(normalizeText(kw))) return field;
-  }
-  return null;
 }
 
 function parseNumber(v: unknown): number | null {
@@ -69,6 +34,9 @@ export async function POST(request: Request) {
     if (!file) {
       return NextResponse.json({ success: false, error: 'Không có file' }, { status: 400 });
     }
+
+    // Lấy danh sách nhóm đối tượng
+    const activeGroups = await prisma.demographicGroup.findMany({ where: { isActive: true } });
 
     // Đọc file
     const buffer = await file.arrayBuffer();
@@ -98,7 +66,7 @@ export async function POST(request: Request) {
 
     const headerRow = rows[headerRowIdx];
     
-    // Map cột → field
+    // Map cột → groupKey
     const colMap: Record<number, string> = {};
     let donViCol = -1;
 
@@ -110,26 +78,18 @@ export async function POST(request: Request) {
         donViCol = c;
         continue;
       }
-      const field = detectField(h);
-      if (field) colMap[c] = field;
+      
+      const matchedGroup = activeGroups.find(g => 
+        norm.includes(normalizeText(g.name)) || norm.includes(normalizeText(g.shortLabel))
+      );
+      
+      if (matchedGroup) {
+        colMap[c] = matchedGroup.key;
+      }
     }
 
-    // Nếu không tìm được cột đơn vị, thử tìm cột chứa "xã" hoặc "phường" trong data rows
     if (donViCol === -1) {
-      // Fallback: cột thứ 2 (index 1) thường là tên đơn vị
       donViCol = 1;
-    }
-
-    // Nếu không tìm được mapping → dùng mapping mặc định theo thứ tự cột từ Google Sheets
-    // STT | Đơn vị | Trẻ <6T | Cao tuổi | Có công | Khuyết tật | Nghèo | Cận nghèo | Vùng khó
-    if (Object.keys(colMap).length === 0) {
-      colMap[2] = 'tre_em_duoi_6_tuoi';
-      colMap[3] = 'nguoi_cao_tuoi';
-      colMap[4] = 'nguoi_co_cong';
-      colMap[5] = 'nguoi_khuyet_tat';
-      colMap[6] = 'ho_ngheo';
-      colMap[7] = 'ho_can_ngheo';
-      colMap[8] = 'vung_kho_khan';
     }
 
     // Xử lý từng hàng dữ liệu
@@ -145,14 +105,15 @@ export async function POST(request: Request) {
       if (!donVi || donVi.length < 3) { skipped++; continue; }
       if (/^(tổng|total|stt|sttt|\d+$)/i.test(donVi)) { skipped++; continue; }
 
-      const data: Record<string, number | null> = {};
-      for (const [colStr, field] of Object.entries(colMap)) {
+      const details = [];
+      for (const [colStr, groupKey] of Object.entries(colMap)) {
         const col = parseInt(colStr);
-        data[field] = parseNumber(row[col]);
+        const target = parseNumber(row[col]);
+        details.push({ groupKey, target });
       }
 
       try {
-        await upsertBenchmark(donVi, data);
+        await upsertBenchmark(donVi, details);
         updated++;
       } catch (e: any) {
         errors.push(`${donVi}: ${e.message}`);

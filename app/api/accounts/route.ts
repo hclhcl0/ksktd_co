@@ -16,7 +16,9 @@ export async function GET(request: Request) {
       username: a.username,
       displayName: a.displayName,
       password: a.password,
-      role: a.role
+      role: a.role,
+      status: a.status,
+      orgType: a.orgType
     }));
 
     return NextResponse.json(safeAccounts);
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { username, displayName, password, role: accountRole } = body;
+    const { username, displayName, password, role: accountRole, status, orgType } = body;
 
     if (!username || !displayName || !password || !accountRole) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -48,10 +50,12 @@ export async function POST(request: Request) {
       username: username.toLowerCase(),
       displayName,
       password,
-      role: accountRole
+      role: accountRole,
+      status: status || 'approved',
+      orgType: orgType || ''
     });
 
-    return NextResponse.json({ success: true, account: { username: newAcc.username, displayName: newAcc.displayName, role: newAcc.role } });
+    return NextResponse.json({ success: true, account: { username: newAcc.username, displayName: newAcc.displayName, role: newAcc.role, status: newAcc.status, orgType: newAcc.orgType } });
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -66,7 +70,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { username, displayName, password, role: accountRole } = body;
+    const { username, displayName, password, role: accountRole, status, orgType } = body;
 
     if (!username) {
       return NextResponse.json({ error: 'Username is required' }, { status: 400 });
@@ -76,13 +80,15 @@ export async function PUT(request: Request) {
     if (displayName) updates.displayName = displayName;
     if (password) updates.password = password; // Only update if provided
     if (accountRole) updates.role = accountRole;
+    if (status) updates.status = status;
+    if (orgType !== undefined) updates.orgType = orgType;
 
     const updated = await updateAccount(username, updates);
     if (!updated) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, account: { username: updated.username, displayName: updated.displayName, role: updated.role } });
+    return NextResponse.json({ success: true, account: { username: updated.username, displayName: updated.displayName, role: updated.role, status: updated.status, orgType: updated.orgType } });
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, AlertCircle, Loader2, Lock, User, Activity } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Loader2, Lock, User, Activity, UserPlus } from 'lucide-react';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,7 +35,11 @@ export default function LoginPage() {
         });
 
         if (result?.error) {
-          setError('Tên đăng nhập hoặc mật khẩu không chính xác');
+          if (result.error === 'CredentialsSignin' || result.error === 'Configuration') {
+            setError('Tên đăng nhập hoặc mật khẩu không chính xác');
+          } else {
+            setError(result.error); // Hiển thị lỗi tuỳ chỉnh (pending/rejected)
+          }
           return;
         }
 
@@ -170,8 +175,18 @@ export default function LoginPage() {
           </form>
 
           {/* Help text */}
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <p className="text-xs text-slate-400 text-center leading-relaxed">
+          <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-3">
+            <Link 
+              href="/register"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl
+                bg-blue-50 hover:bg-blue-100 active:bg-blue-200
+                text-blue-600 text-sm font-semibold border border-blue-100
+                transition-all duration-200"
+            >
+              <UserPlus className="w-4 h-4" />
+              Đăng ký tài khoản tổ chức mới
+            </Link>
+            <p className="text-xs text-slate-400 text-center leading-relaxed mt-2">
               Quên mật khẩu? Liên hệ bộ phận kế hoạch – nghiệp vụ CDC để được hỗ trợ
             </p>
           </div>

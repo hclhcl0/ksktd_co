@@ -12,6 +12,8 @@ model Account {
   displayName String
   password    String
   role        String   // 'admin' or 'unit'
+  status      String   @default("approved") // 'pending', 'approved', 'rejected'
+  orgType     String   @default("") // 'school', 'military', 'enterprise', 'other', or empty for defaults
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -30,8 +32,13 @@ model HealthReport {
   nguoi_co_cong      Int      @default(0)
   vung_kho_khan      Int      @default(0)
   tre_em_duoi_6_tuoi Int      @default(0)
+  hoc_sinh_sinh_vien Int      @default(0)
+  luc_luong_vu_trang Int      @default(0)
+  nguoi_lao_dong     Int      @default(0)
   
   created_at         DateTime @default(now())
+
+  details            HealthReportData[]
 
   @@index([don_vi])
   @@index([created_at])
@@ -47,7 +54,12 @@ model Benchmark {
   nguoi_co_cong      Int?
   vung_kho_khan      Int?
   tre_em_duoi_6_tuoi Int?
+  hoc_sinh_sinh_vien Int?
+  luc_luong_vu_trang Int?
+  nguoi_lao_dong     Int?
   updatedAt          DateTime @updatedAt
+
+  details            BenchmarkData[]
 }
 
 model Vaccine {
@@ -97,14 +109,71 @@ model VaccinationReport {
   nguoi_co_cong      Int      @default(0)
   vung_kho_khan      Int      @default(0)
   tre_em_duoi_6_tuoi Int      @default(0)
+  hoc_sinh_sinh_vien Int      @default(0)
+  luc_luong_vu_trang Int      @default(0)
+  nguoi_lao_dong     Int      @default(0)
   
   created_at         DateTime @default(now())
 
   campaign           VaccineCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   vaccine            Vaccine         @relation(fields: [vaccineId], references: [id], onDelete: Cascade)
+  details            VaccinationReportData[]
 
   @@index([don_vi])
   @@index([campaignId])
   @@index([vaccineId])
   @@index([created_at])
+}
+
+model DemographicGroup {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  shortLabel  String
+  icon        String?
+  color       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  healthData  HealthReportData[]
+  benchmarks  BenchmarkData[]
+  vacData     VaccinationReportData[]
+}
+
+model HealthReportData {
+  id          String   @id @default(cuid())
+  reportId    String
+  groupKey    String
+  count       Int      @default(0)
+
+  report      HealthReport     @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  group       DemographicGroup @relation(fields: [groupKey], references: [key], onDelete: Cascade)
+
+  @@unique([reportId, groupKey])
+  @@index([reportId])
+}
+
+model BenchmarkData {
+  id          String   @id @default(cuid())
+  don_vi      String
+  groupKey    String
+  target      Int?
+
+  benchmark   Benchmark        @relation(fields: [don_vi], references: [don_vi], onDelete: Cascade)
+  group       DemographicGroup @relation(fields: [groupKey], references: [key], onDelete: Cascade)
+
+  @@unique([don_vi, groupKey])
+}
+
+model VaccinationReportData {
+  id          String   @id @default(cuid())
+  reportId    String
+  groupKey    String
+  count       Int      @default(0)
+
+  report      VaccinationReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  group       DemographicGroup  @relation(fields: [groupKey], references: [key], onDelete: Cascade)
+
+  @@unique([reportId, groupKey])
+  @@index([reportId])
 }

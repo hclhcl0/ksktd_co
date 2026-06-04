@@ -1,17 +1,27 @@
+export interface DemographicGroup {
+  id: string;
+  key: string;
+  name: string;
+  shortLabel: string;
+  icon: string | null;
+  color: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface HealthReportData {
+  groupKey: string;
+  count: number;
+}
+
 export interface HealthReport {
   id: string;
   don_vi: string;
   ngay_kham: string; // ISO date string "YYYY-MM-DD"
   co_so_y_te: string;
   nguoi_nop_bao_cao: string;
-  nguoi_cao_tuoi: number;
-  nguoi_khuyet_tat: number;
-  ho_ngheo: number;
-  ho_can_ngheo: number;
-  nguoi_co_cong: number;
-  vung_kho_khan: number;
-  tre_em_duoi_6_tuoi: number;
   created_at: string; // ISO datetime string
+  details: HealthReportData[];
 }
 
 export type HealthReportFormData = Omit<HealthReport, 'id' | 'created_at'>;
@@ -19,7 +29,7 @@ export type HealthReportFormData = Omit<HealthReport, 'id' | 'created_at'>;
 export interface GroupStat {
   label: string;
   shortLabel: string;
-  key: StatKey;
+  key: string;
   total: number;
   color: string;
 }
@@ -42,17 +52,8 @@ export interface DashboardStats {
 
 // ─── Benchmark / Progress types ──────────────────────────────────────────────
 
-export type StatKey =
-  | 'nguoi_cao_tuoi'
-  | 'nguoi_khuyet_tat'
-  | 'ho_ngheo'
-  | 'ho_can_ngheo'
-  | 'nguoi_co_cong'
-  | 'vung_kho_khan'
-  | 'tre_em_duoi_6_tuoi';
-
 export interface StatProgress {
-  key: StatKey;
+  key: string;
   label: string;
   icon: string;
   achieved: number;          // tổng đã khám (cộng gộp tất cả báo cáo)
@@ -101,6 +102,11 @@ export interface VaccineCampaign {
   status: CampaignStatus;
 }
 
+export interface VaccinationReportData {
+  groupKey: string;
+  count: number;
+}
+
 export interface VaccinationReport {
   id: string;
   campaignId: string;
@@ -109,12 +115,5 @@ export interface VaccinationReport {
   ngay_tiem: string; // ISO YYYY-MM-DD
   nguoi_nop_bao_cao: string;
   created_at: string; // ISO datetime
-  // Stats by group
-  nguoi_cao_tuoi: number;
-  nguoi_khuyet_tat: number;
-  ho_ngheo: number;
-  ho_can_ngheo: number;
-  nguoi_co_cong: number;
-  vung_kho_khan: number;
-  tre_em_duoi_6_tuoi: number;
+  details: VaccinationReportData[];
 }

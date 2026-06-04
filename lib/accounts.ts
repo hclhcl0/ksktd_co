@@ -6,6 +6,8 @@ export interface Account {
   displayName: string;
   password?: string;
   role: string;
+  status?: string;
+  orgType?: string;
 }
 
 // Lấy tất cả tài khoản
@@ -15,6 +17,8 @@ export async function getAccounts(): Promise<Account[]> {
     username: a.username,
     displayName: a.displayName,
     role: a.role,
+    status: a.status,
+    orgType: a.orgType,
     // We omit password here for safety, unless it's needed for the admin view.
     // The previous implementation returned everything.
     password: a.password
@@ -50,6 +54,8 @@ export async function addAccount(account: Account): Promise<Account> {
       displayName: account.displayName,
       password: account.password || '',
       role: account.role,
+      status: account.status || 'approved',
+      orgType: account.orgType || '',
     }
   });
   return newAccount;
@@ -64,6 +70,8 @@ export async function updateAccount(username: string, updates: Partial<Account>)
         ...(updates.displayName && { displayName: updates.displayName }),
         ...(updates.password && { password: updates.password }),
         ...(updates.role && { role: updates.role }),
+        ...(updates.status && { status: updates.status }),
+        ...(updates.orgType !== undefined && { orgType: updates.orgType }),
       }
     });
     return updated;

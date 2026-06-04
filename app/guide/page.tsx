@@ -137,11 +137,12 @@ export default function GuidePage() {
             </NoteBox>
           </SubSection>
 
-          {/* 1.5 Đổi mật khẩu */}
-          <SubSection icon={<ShieldCheck className="w-5 h-5 text-slate-500" />} title="1.5. Đổi mật khẩu">
-            <p className="text-sm text-slate-600">
-              Nhấn vào <strong>tên tài khoản</strong> góc trên bên phải → chọn <strong>"Đổi mật khẩu"</strong>. Nhập mật khẩu hiện tại và mật khẩu mới, sau đó xác nhận. Mật khẩu sẽ được áp dụng ngay lần đăng nhập kế tiếp.
-            </p>
+          {/* 1.5 Đăng ký và Đổi mật khẩu */}
+          <SubSection icon={<ShieldCheck className="w-5 h-5 text-slate-500" />} title="1.5. Quản lý Tài khoản">
+            <ul className="list-disc pl-5 text-slate-600 space-y-2 text-sm leading-relaxed mb-4">
+              <li><strong>Đăng ký tài khoản:</strong> Các đơn vị/tổ chức mới (trường học, doanh nghiệp,...) có thể tự đăng ký tài khoản tại trang đăng nhập. Tài khoản mới sẽ ở trạng thái "Chờ duyệt", cần chờ Admin phê duyệt để sử dụng.</li>
+              <li><strong>Đổi mật khẩu:</strong> Nhấn vào tên tài khoản góc trên bên phải → chọn <strong>"Đổi mật khẩu"</strong>. Nhập mật khẩu hiện tại và mật khẩu mới.</li>
+            </ul>
           </SubSection>
 
         </Section>
@@ -213,8 +214,9 @@ export default function GuidePage() {
           <SubSection icon={<Users className="w-5 h-5 text-blue-500" />} title="2.5. Quản lý Tài khoản">
             <p className="text-sm text-slate-600 mb-3">Truy cập <strong>Quản trị → Tài khoản</strong>.</p>
             <ul className="list-disc pl-5 text-slate-600 space-y-2 text-sm leading-relaxed">
+              <li><strong>Duyệt tài khoản mới:</strong> Xem danh sách các đơn vị mới đăng ký (trạng thái "Chờ duyệt") và thao tác Duyệt hoặc Từ chối.</li>
               <li><strong>Tạo tài khoản mới:</strong> Nhập tên đăng nhập, tên đơn vị, mật khẩu và phân quyền (Đơn vị / Admin).</li>
-              <li><strong>Đổi mật khẩu hộ:</strong> Nếu người dùng quên mật khẩu, Admin có thể đặt lại mật khẩu mới cho họ trực tiếp tại đây.</li>
+              <li><strong>Quản lý:</strong> Đổi thông tin tài khoản, Reset mật khẩu cho đơn vị quên mật khẩu. Admin có thể trực tiếp theo dõi tiến độ của đơn vị từ Dashboard riêng của đơn vị đó.</li>
               <li><strong>Xóa tài khoản:</strong> Xóa tài khoản không còn sử dụng (trừ tài khoản <code>admin</code> chính).</li>
             </ul>
           </SubSection>

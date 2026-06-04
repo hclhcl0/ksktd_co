@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getCampaigns, getVaccines, getVaccinationReports } from '@/lib/vaccination_data';
-import { GROUP_DEFINITIONS } from '@/lib/constants'; // reuse group definitions
+import { getActiveGroups } from '@/lib/data';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const campaignId = searchParams.get('campaignId') || undefined;
 
-    const campaigns = await getCampaigns();
-    const vaccines = await getVaccines();
-    let reports = await getVaccinationReports(campaignId);
+    const [campaigns, vaccines, reports, activeGroups] = await Promise.all([
+      getCampaigns(),
+      getVaccines(),
+      getVaccinationReports(campaignId),
+      getActiveGroups()
+    ]);
 
     // If a specific campaign is requested, calculate progress
     if (campaignId) {
@@ -21,8 +24,11 @@ export async function GET(request: Request) {
         const vReports = reports.filter(r => r.vaccineId === cv.vaccineId);
         
         let totalAdministered = 0;
-        const groupStats = GROUP_DEFINITIONS.map(def => {
-          const total = vReports.reduce((sum, r) => sum + (r[def.key] as number), 0);
+        const groupStats = activeGroups.map(def => {
+          const total = vReports.reduce((sum, r) => {
+            const detail = r.details.find(d => d.groupKey === def.key);
+            return sum + (detail ? detail.count : 0);
+          }, 0);
           totalAdministered += total;
           return { ...def, total };
         });
@@ -48,9 +54,7 @@ export async function GET(request: Request) {
       const cReports = await getVaccinationReports(c.id);
       let totalAdministered = 0;
       cReports.forEach(r => {
-        GROUP_DEFINITIONS.forEach(def => {
-          totalAdministered += (r[def.key] as number);
-        });
+        totalAdministered += r.details.reduce((sum, d) => sum + d.count, 0);
       });
       
       const totalAllocated = c.vaccines.reduce((sum, v) => sum + v.totalAllocated, 0);

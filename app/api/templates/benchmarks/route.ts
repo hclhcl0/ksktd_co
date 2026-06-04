@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getBenchmarks } from '@/lib/benchmarks_db';
+import { getActiveGroups } from '@/lib/data';
 import ExcelJS from 'exceljs';
 import { auth } from '@/lib/auth';
 
@@ -13,7 +14,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const benchmarks = await getBenchmarks();
+    const [benchmarks, activeGroups] = await Promise.all([
+      getBenchmarks(),
+      getActiveGroups()
+    ]);
     
     const wb = new ExcelJS.Workbook();
     wb.creator = 'Health Report System';
@@ -38,32 +42,27 @@ export async function GET() {
       };
     };
 
-    // Columns: STT, Tên xã/phường, Trẻ em dưới 6 tuổi, Người cao tuổi, Người có công, Người khuyết tật, Hộ nghèo, Hộ cận nghèo, Vùng khó khăn/DTTS
-    const headerRow = ws.addRow([
+    const headers = [
       'STT',
       'Tên xã/phường',
-      'Trẻ em dưới 6 tuổi',
-      'Người cao tuổi',
-      'Người có công',
-      'Người khuyết tật',
-      'Hộ nghèo',
-      'Hộ cận nghèo',
-      'Vùng khó khăn/DTTS'
-    ]);
+      ...activeGroups.map(g => g.name)
+    ];
+
+    const headerRow = ws.addRow(headers);
     headerRow.height = 30;
     headerRow.eachCell(cell => styleHeader(cell));
 
     // Define column widths
     ws.getColumn(1).width = 6;
     ws.getColumn(2).width = 30;
-    for (let i = 3; i <= 9; i++) {
+    for (let i = 3; i <= headers.length; i++) {
       ws.getColumn(i).width = 18;
     }
 
     // Add data
     if (benchmarks.length === 0) {
       // Add a dummy row if db is empty
-      const row = ws.addRow([1, 'Phường Mẫu', '', '', '', '', '', '', '']);
+      const row = ws.addRow([1, 'Phường Mẫu', ...activeGroups.map(() => '')]);
       row.eachCell(c => {
          c.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
@@ -71,15 +70,14 @@ export async function GET() {
       benchmarks.forEach((b, idx) => {
         const rowData = [
           idx + 1,
-          b.don_vi,
-          b.tre_em_duoi_6_tuoi !== null ? b.tre_em_duoi_6_tuoi : '',
-          b.nguoi_cao_tuoi !== null ? b.nguoi_cao_tuoi : '',
-          b.nguoi_co_cong !== null ? b.nguoi_co_cong : '',
-          b.nguoi_khuyet_tat !== null ? b.nguoi_khuyet_tat : '',
-          b.ho_ngheo !== null ? b.ho_ngheo : '',
-          b.ho_can_ngheo !== null ? b.ho_can_ngheo : '',
-          b.vung_kho_khan !== null ? b.vung_kho_khan : ''
+          b.don_vi
         ];
+
+        activeGroups.forEach(g => {
+          const detail = b.details.find(d => d.groupKey === g.key);
+          rowData.push(detail && detail.target !== null ? detail.target : '');
+        });
+
         const dataRow = ws.addRow(rowData);
         dataRow.eachCell((cell, colNumber) => {
           cell.font = { name: 'Times New Roman', size: 12 };

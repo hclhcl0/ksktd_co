@@ -3,22 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Target, Save, CheckCircle2, AlertCircle, Loader2, Info } from 'lucide-react';
+import { DemographicGroup } from '@/lib/types';
 
-const FIELDS = [
-  { key: 'tre_em_duoi_6_tuoi', label: 'Trẻ em dưới 6 tuổi', icon: '👶', description: 'Trẻ em dưới 6 tuổi chưa đi học mẫu giáo' },
-  { key: 'nguoi_cao_tuoi',     label: 'Người cao tuổi',       icon: '👴', description: 'Tổng số người cao tuổi cần được khám' },
-  { key: 'nguoi_co_cong',      label: 'Người có công',        icon: '⭐', description: 'Người có công với cách mạng và thân nhân' },
-  { key: 'nguoi_khuyet_tat',   label: 'Người khuyết tật',     icon: '♿', description: 'Tổng số người khuyết tật' },
-  { key: 'ho_ngheo',           label: 'Hộ nghèo',             icon: '🏠', description: 'Người thuộc hộ nghèo theo chuẩn hiện hành' },
-  { key: 'ho_can_ngheo',       label: 'Hộ cận nghèo',         icon: '🏡', description: 'Người thuộc hộ cận nghèo' },
-  { key: 'vung_kho_khan',      label: 'Vùng khó khăn / DTTS', icon: '🏔️', description: 'Người sống tại vùng khó khăn, đồng bào DTTS' },
-] as const;
-
-type FieldKey = typeof FIELDS[number]['key'];
-type BenchmarkData = Record<FieldKey, number | null>;
-
-const empty = (): BenchmarkData =>
-  Object.fromEntries(FIELDS.map(f => [f.key, null])) as BenchmarkData;
+type BenchmarkData = Record<string, number | null>;
 
 type Status = 'idle' | 'loading' | 'saving' | 'saved' | 'error';
 
@@ -26,30 +13,42 @@ export default function MyBenchmarksPage() {
   const { data: session } = useSession();
   const unitName = session?.user?.name ?? '';
 
-  const [data, setData] = useState<BenchmarkData>(empty());
+  const [groups, setGroups] = useState<DemographicGroup[]>([]);
+  const [data, setData] = useState<BenchmarkData>({});
   const [status, setStatus] = useState<Status>('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [hasExisting, setHasExisting] = useState(false);
 
   useEffect(() => {
-    if (!unitName) return;
-    fetch('/api/benchmarks')
-      .then(r => r.json())
-      .then(json => {
-        const list: any[] = json.data ?? [];
+    Promise.all([
+      fetch('/api/demographic-groups').then(r => r.json()),
+      fetch('/api/benchmarks').then(r => r.json())
+    ]).then(([groupsData, benchmarksJson]) => {
+      const activeGroups = (Array.isArray(groupsData) ? groupsData : []).filter(g => g.isActive);
+      setGroups(activeGroups);
+
+      const d: BenchmarkData = {};
+      activeGroups.forEach(g => { d[g.key] = null; });
+
+      if (unitName) {
+        const list: any[] = benchmarksJson.data ?? [];
         const mine = list.find(b => b.don_vi === unitName);
-        if (mine) {
-          setHasExisting(FIELDS.some(f => mine[f.key] !== null));
-          const d: BenchmarkData = empty();
-          FIELDS.forEach(f => { d[f.key] = mine[f.key] ?? null; });
-          setData(d);
+        if (mine && Array.isArray(mine.details)) {
+          setHasExisting(mine.details.some((detail: any) => detail.target !== null));
+          mine.details.forEach((detail: any) => {
+            if (d[detail.groupKey] !== undefined) {
+              d[detail.groupKey] = detail.target;
+            }
+          });
         }
-        setStatus('idle');
-      })
-      .catch(() => setStatus('idle'));
+      }
+      
+      setData(d);
+      setStatus('idle');
+    }).catch(() => setStatus('idle'));
   }, [unitName]);
 
-  const handleChange = (key: FieldKey, val: string) => {
+  const handleChange = (key: string, val: string) => {
     const trimmed = val.trim();
     const n = trimmed === '' ? null : parseInt(trimmed.replace(/[.,\s]/g, ''), 10);
     setData(prev => ({ ...prev, [key]: isNaN(n as number) ? null : n }));
@@ -59,10 +58,15 @@ export default function MyBenchmarksPage() {
     setStatus('saving');
     setErrorMsg('');
     try {
+      const details = groups.map(g => ({
+        groupKey: g.key,
+        target: data[g.key]
+      }));
+
       const res = await fetch(`/api/benchmarks/${encodeURIComponent(unitName)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ details }),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -77,7 +81,7 @@ export default function MyBenchmarksPage() {
     }
   };
 
-  const totalFilled = FIELDS.filter(f => data[f.key] !== null).length;
+  const totalFilled = groups.filter(g => data[g.key] !== null).length;
 
   if (status === 'loading') {
     return (
@@ -116,32 +120,37 @@ export default function MyBenchmarksPage() {
       {hasExisting && (
         <div className="flex items-center gap-2 mb-4 text-sm text-emerald-600">
           <CheckCircle2 className="w-4 h-4" />
-          <span>Đơn vị đã có chỉ tiêu ({totalFilled}/7 nhóm đã nhập)</span>
+          <span>Đơn vị đã có chỉ tiêu ({totalFilled}/{groups.length} nhóm đã nhập)</span>
         </div>
       )}
 
       {/* Form */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="divide-y divide-slate-50">
-          {FIELDS.map(f => (
-            <div key={f.key} className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50/50 transition-colors">
-              <span className="text-2xl w-8 text-center flex-shrink-0">{f.icon}</span>
+          {groups.map(g => (
+            <div key={g.key} className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50/50 transition-colors">
+              <span className="text-2xl w-8 text-center flex-shrink-0">{g.icon || '👥'}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800">{f.label}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{f.description}</p>
+                <p className="text-sm font-semibold text-slate-800">{g.name}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{g.shortLabel}</p>
               </div>
               <div className="flex-shrink-0">
                 <input
                   type="number"
                   min="0"
-                  value={data[f.key] === null ? '' : String(data[f.key])}
-                  onChange={e => handleChange(f.key, e.target.value)}
+                  value={data[g.key] === null ? '' : String(data[g.key])}
+                  onChange={e => handleChange(g.key, e.target.value)}
                   placeholder="—"
                   className="w-28 px-3 py-2 text-right text-base font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 />
               </div>
             </div>
           ))}
+          {groups.length === 0 && (
+            <div className="p-8 text-center text-slate-500 text-sm">
+              Chưa có danh mục đối tượng nào được định nghĩa.
+            </div>
+          )}
         </div>
       </div>
 
@@ -165,7 +174,7 @@ export default function MyBenchmarksPage() {
       <div className="mt-5 flex justify-end">
         <button
           onClick={handleSave}
-          disabled={status === 'saving'}
+          disabled={status === 'saving' || groups.length === 0}
           className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-bold rounded-xl shadow-md shadow-blue-600/25 transition-all"
         >
           {status === 'saving'

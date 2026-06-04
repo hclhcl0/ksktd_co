@@ -16,34 +16,12 @@ export const healthReportSchema = z.object({
     .string()
     .min(2, 'Vui lòng nhập họ và tên người nộp báo cáo')
     .max(100, 'Họ và tên không được vượt quá 100 ký tự'),
-  nguoi_cao_tuoi: z
-    .number({ message: 'Vui lòng nhập số hợp lệ' })
-    .int('Phải là số nguyên')
-    .min(0, 'Số liệu không được âm'),
-  nguoi_khuyet_tat: z
-    .number({ message: 'Vui lòng nhập số hợp lệ' })
-    .int('Phải là số nguyên')
-    .min(0, 'Số liệu không được âm'),
-  ho_ngheo: z
-    .number({ message: 'Vui lòng nhập số hợp lệ' })
-    .int('Phải là số nguyên')
-    .min(0, 'Số liệu không được âm'),
-  ho_can_ngheo: z
-    .number({ message: 'Vui lòng nhập số hợp lệ' })
-    .int('Phải là số nguyên')
-    .min(0, 'Số liệu không được âm'),
-  nguoi_co_cong: z
-    .number({ message: 'Vui lòng nhập số hợp lệ' })
-    .int('Phải là số nguyên')
-    .min(0, 'Số liệu không được âm'),
-  vung_kho_khan: z
-    .number({ message: 'Vui lòng nhập số hợp lệ' })
-    .int('Phải là số nguyên')
-    .min(0, 'Số liệu không được âm'),
-  tre_em_duoi_6_tuoi: z
-    .number({ message: 'Vui lòng nhập số hợp lệ' })
-    .int('Phải là số nguyên')
-    .min(0, 'Số liệu không được âm'),
+  details: z.array(
+    z.object({
+      groupKey: z.string(),
+      count: z.number().int('Phải là số nguyên').min(0, 'Số liệu không được âm')
+    })
+  )
 });
 
 export type HealthReportFormValues = z.infer<typeof healthReportSchema>;

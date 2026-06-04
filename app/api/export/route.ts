@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllReports, getProgressDashboard } from '@/lib/data';
+import { getAllReports, getProgressDashboard, getActiveGroups } from '@/lib/data';
 import ExcelJS from 'exceljs';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +8,7 @@ export async function GET() {
   try {
     const rawReports = await getAllReports();
     const progress = await getProgressDashboard();
+    const activeGroups = await getActiveGroups();
     
     // Create workbook
     const wb = new ExcelJS.Workbook();
@@ -147,11 +148,12 @@ export async function GET() {
     titleRowRaw.font = { name: 'Times New Roman', size: 14, bold: true };
     titleRowRaw.alignment = { horizontal: 'center', vertical: 'middle' };
     titleRowRaw.height = 30;
-    wsRaw.mergeCells(1, 1, 1, 12);
+    wsRaw.mergeCells(1, 1, 1, 4 + activeGroups.length + 1);
     
     const rawHeaders = [
-      'STT', 'Ngày khám', 'Đơn vị', 'Người nộp báo cáo', 'Người cao tuổi', 'Người khuyết tật',
-      'Hộ nghèo', 'Hộ cận nghèo', 'Người có công', 'Vùng khó khăn', 'Trẻ em dưới 6 tuổi', 'Thời gian nộp'
+      'STT', 'Ngày khám', 'Đơn vị', 'Người nộp báo cáo',
+      ...activeGroups.map(g => g.name),
+      'Thời gian nộp'
     ];
     
     // Add Header Row
@@ -161,20 +163,21 @@ export async function GET() {
 
     // Add Data Rows
     rawReports.forEach((r, idx) => {
-      const dataRow = wsRaw.addRow([
+      const rowData: any[] = [
         idx + 1,
         r.ngay_kham,
         r.don_vi,
-        r.nguoi_nop_bao_cao || '',
-        r.nguoi_cao_tuoi,
-        r.nguoi_khuyet_tat,
-        r.ho_ngheo,
-        r.ho_can_ngheo,
-        r.nguoi_co_cong,
-        r.vung_kho_khan,
-        r.tre_em_duoi_6_tuoi,
-        new Date(r.created_at).toLocaleString('vi-VN')
-      ]);
+        r.nguoi_nop_bao_cao || ''
+      ];
+
+      activeGroups.forEach(g => {
+        const detail = r.details.find(d => d.groupKey === g.key);
+        rowData.push(detail ? detail.count : 0);
+      });
+
+      rowData.push(new Date(r.created_at).toLocaleString('vi-VN'));
+
+      const dataRow = wsRaw.addRow(rowData);
       dataRow.eachCell((cell, colNumber) => {
         styleCell(cell, false);
         // Center align numbers and dates
@@ -190,7 +193,7 @@ export async function GET() {
       else if (i === 1) col.width = 15; // Ngày khám
       else if (i === 2) col.width = 25; // Đơn vị
       else if (i === 3) col.width = 20; // Người nộp báo cáo
-      else if (i === 11) col.width = 20; // Thời gian nộp
+      else if (i === rawHeaders.length - 1) col.width = 20; // Thời gian nộp
       else col.width = 15; // Stats
     });
 

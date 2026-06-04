@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getBenchmarks } from '@/lib/benchmarks_db';
+import { getActiveGroups } from '@/lib/data';
 import { Target, Info } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -15,22 +16,15 @@ export default async function BenchmarksPage() {
   const role = (session?.user as { role?: string })?.role;
   if (role !== 'admin' && role !== 'admin_cdc') redirect('/submit-report');
 
-  const benchmarks = await getBenchmarks();
+  const [benchmarks, groups] = await Promise.all([
+    getBenchmarks(),
+    getActiveGroups()
+  ]);
 
   const totalUnits = benchmarks.length;
   const filledUnits = benchmarks.filter((b) =>
-    [b.nguoi_cao_tuoi, b.nguoi_khuyet_tat, b.ho_ngheo, b.ho_can_ngheo, b.nguoi_co_cong, b.vung_kho_khan, b.tre_em_duoi_6_tuoi].some((v) => v !== null)
+    b.details.some((d) => d.target !== null && d.target > 0)
   ).length;
-
-  const FIELDS = [
-    { key: 'tre_em_duoi_6_tuoi' as const, short: 'Trẻ <6T'    },
-    { key: 'nguoi_cao_tuoi'     as const, short: 'Cao tuổi'   },
-    { key: 'nguoi_co_cong'      as const, short: 'Có công'    },
-    { key: 'nguoi_khuyet_tat'   as const, short: 'Khuyết tật' },
-    { key: 'ho_ngheo'           as const, short: 'Hộ nghèo'   },
-    { key: 'ho_can_ngheo'       as const, short: 'Cận nghèo'  },
-    { key: 'vung_kho_khan'      as const, short: 'Vùng khó'   },
-  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -84,9 +78,9 @@ export default async function BenchmarksPage() {
               <th className="text-left px-4 py-3 font-semibold text-slate-600 sticky left-0 bg-slate-50 min-w-[180px]">
                 Xã / Phường
               </th>
-              {FIELDS.map(f => (
-                <th key={f.key} className="text-center px-3 py-3 font-semibold text-slate-600 min-w-[90px] whitespace-nowrap">
-                  {f.short}
+              {groups.map(g => (
+                <th key={g.key} className="text-center px-3 py-3 font-semibold text-slate-600 min-w-[90px] whitespace-nowrap">
+                  {g.shortLabel}
                 </th>
               ))}
               <th className="text-center px-3 py-3 font-semibold text-slate-600 whitespace-nowrap">Trạng thái</th>
@@ -94,19 +88,23 @@ export default async function BenchmarksPage() {
           </thead>
           <tbody className="divide-y divide-slate-50">
             {benchmarks.map((row, idx) => {
-              const hasSome = FIELDS.some(f => row[f.key] !== null);
+              const hasSome = row.details.some(d => d.target !== null && d.target > 0);
               return (
                 <tr key={row.don_vi} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50/20`}>
                   <td className="px-4 py-2.5 font-medium text-slate-800 sticky left-0 bg-inherit whitespace-nowrap">
                     {row.don_vi}
                   </td>
-                  {FIELDS.map(f => (
-                    <td key={f.key} className="px-3 py-2.5 text-center">
-                      <span className={row[f.key] === null ? 'text-slate-300 italic text-xs' : 'text-slate-700 font-medium'}>
-                        {row[f.key] === null ? '—' : (row[f.key] as number).toLocaleString('vi-VN')}
-                      </span>
-                    </td>
-                  ))}
+                  {groups.map(g => {
+                    const detail = row.details.find(d => d.groupKey === g.key);
+                    const target = detail ? detail.target : null;
+                    return (
+                      <td key={g.key} className="px-3 py-2.5 text-center">
+                        <span className={target === null ? 'text-slate-300 italic text-xs' : 'text-slate-700 font-medium'}>
+                          {target === null ? '—' : target.toLocaleString('vi-VN')}
+                        </span>
+                      </td>
+                    );
+                  })}
                   <td className="px-3 py-2.5 text-center">
                     {hasSome
                       ? <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Đã nhập</span>
@@ -116,6 +114,13 @@ export default async function BenchmarksPage() {
                 </tr>
               );
             })}
+            {benchmarks.length === 0 && (
+              <tr>
+                <td colSpan={groups.length + 2} className="px-4 py-8 text-center text-slate-500">
+                  Chưa có dữ liệu.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

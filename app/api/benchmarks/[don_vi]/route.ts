@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { upsertBenchmark } from '@/lib/benchmarks_db';
+import { upsertBenchmark, BenchmarkDataRecord } from '@/lib/benchmarks_db';
 import { auth } from '@/lib/auth';
 
 export async function PUT(
@@ -37,18 +37,21 @@ export async function PUT(
 
     const body = await request.json();
 
-    // Parse values: empty string or null → null, else parseInt
-    const parsed: Record<string, number | null> = {};
-    const fields = ['nguoi_cao_tuoi', 'nguoi_khuyet_tat', 'ho_ngheo', 'ho_can_ngheo', 'nguoi_co_cong', 'vung_kho_khan', 'tre_em_duoi_6_tuoi'];
-    for (const f of fields) {
-      const v = body[f];
-      if (v === null || v === '' || v === undefined) {
-        parsed[f] = null;
-      } else {
-        const n = parseInt(String(v).replace(/[.,\s]/g, ''), 10);
-        parsed[f] = isNaN(n) ? null : n;
-      }
+    if (!body.details || !Array.isArray(body.details)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid details payload' },
+        { status: 400 }
+      );
     }
+
+    const parsed: BenchmarkDataRecord[] = body.details.map((d: any) => {
+      let target = null;
+      if (d.target !== null && d.target !== '' && d.target !== undefined) {
+        const n = parseInt(String(d.target).replace(/[.,\s]/g, ''), 10);
+        target = isNaN(n) ? null : n;
+      }
+      return { groupKey: String(d.groupKey), target };
+    });
 
     const updated = await upsertBenchmark(don_vi, parsed);
     return NextResponse.json({ success: true, data: updated });
@@ -60,4 +63,3 @@ export async function PUT(
     );
   }
 }
-

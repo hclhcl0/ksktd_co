@@ -155,11 +155,18 @@ export async function deleteCampaign(id: string): Promise<boolean> {
 export async function getVaccinationReports(campaignId?: string): Promise<VaccinationReport[]> {
   const reports = await prisma.vaccinationReport.findMany({
     where: campaignId ? { campaignId } : undefined,
+    include: { details: true },
     orderBy: { created_at: 'desc' }
   });
   
   return reports.map(r => ({
-    ...r,
+    id: r.id,
+    campaignId: r.campaignId,
+    vaccineId: r.vaccineId,
+    don_vi: r.don_vi,
+    ngay_tiem: r.ngay_tiem,
+    nguoi_nop_bao_cao: r.nguoi_nop_bao_cao,
+    details: r.details.map(d => ({ groupKey: d.groupKey, count: d.count })),
     created_at: r.created_at.toISOString()
   }));
 }
@@ -172,31 +179,64 @@ export async function addVaccinationReport(r: Omit<VaccinationReport, 'id' | 'cr
       don_vi: r.don_vi,
       ngay_tiem: r.ngay_tiem,
       nguoi_nop_bao_cao: r.nguoi_nop_bao_cao,
-      nguoi_cao_tuoi: r.nguoi_cao_tuoi,
-      nguoi_khuyet_tat: r.nguoi_khuyet_tat,
-      ho_ngheo: r.ho_ngheo,
-      ho_can_ngheo: r.ho_can_ngheo,
-      nguoi_co_cong: r.nguoi_co_cong,
-      vung_kho_khan: r.vung_kho_khan,
-      tre_em_duoi_6_tuoi: r.tre_em_duoi_6_tuoi
-    }
+      details: {
+        create: r.details.map(d => ({ groupKey: d.groupKey, count: d.count }))
+      }
+    },
+    include: { details: true }
   });
   
   return {
-    ...newR,
+    id: newR.id,
+    campaignId: newR.campaignId,
+    vaccineId: newR.vaccineId,
+    don_vi: newR.don_vi,
+    ngay_tiem: newR.ngay_tiem,
+    nguoi_nop_bao_cao: newR.nguoi_nop_bao_cao,
+    details: newR.details.map(d => ({ groupKey: d.groupKey, count: d.count })),
     created_at: newR.created_at.toISOString()
   };
 }
 
 export async function updateVaccinationReport(id: string, updates: Partial<VaccinationReport>): Promise<VaccinationReport | null> {
   try {
-    const { id: _id, created_at: _created_at, ...validUpdates } = updates as any;
-    const updated = await prisma.vaccinationReport.update({
-      where: { id },
-      data: validUpdates
+    const { id: _id, created_at: _created_at, details, ...validUpdates } = updates as any;
+    
+    const updated = await prisma.$transaction(async (tx) => {
+      // Update basic fields
+      const report = await tx.vaccinationReport.update({
+        where: { id },
+        data: validUpdates
+      });
+
+      // Update details if provided
+      if (details) {
+        await tx.vaccinationReportData.deleteMany({
+          where: { reportId: id }
+        });
+        if (details.length > 0) {
+          await tx.vaccinationReportData.createMany({
+            data: details.map((d: any) => ({ reportId: id, groupKey: d.groupKey, count: d.count }))
+          });
+        }
+      }
+
+      return tx.vaccinationReport.findUnique({
+        where: { id },
+        include: { details: true }
+      });
     });
+
+    if (!updated) return null;
+
     return {
-      ...updated,
+      id: updated.id,
+      campaignId: updated.campaignId,
+      vaccineId: updated.vaccineId,
+      don_vi: updated.don_vi,
+      ngay_tiem: updated.ngay_tiem,
+      nguoi_nop_bao_cao: updated.nguoi_nop_bao_cao,
+      details: updated.details.map(d => ({ groupKey: d.groupKey, count: d.count })),
       created_at: updated.created_at.toISOString()
     };
   } catch (error) {
