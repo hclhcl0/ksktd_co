@@ -97,7 +97,7 @@ export default function GuidePage() {
               </h3>
               <p className="text-slate-600 mb-3">Bảng điều khiển cho phép Admin theo dõi tiến độ tổng thể của toàn hệ thống (Bao gồm Khám SK và Tiêm chủng).</p>
               <ul className="list-disc pl-5 text-slate-600 space-y-2 text-sm leading-relaxed">
-                <li>Sử dụng thanh <strong>Tìm kiếm nâng cao</strong> (biểu tượng cái Phễu) để lọc các đơn vị: "Đã nộp / Chưa nộp báo cáo", lọc theo "Tiến độ hoàn thành (<50%, 50-80%, >100%)", hoặc lọc theo Cơ sở y tế.</li>
+                <li>Sử dụng thanh <strong>Tìm kiếm nâng cao</strong> (biểu tượng cái Phễu) để lọc các đơn vị: "Đã nộp / Chưa nộp báo cáo", lọc theo "Tiến độ hoàn thành (&lt;50%, 50-80%, &gt;100%)", hoặc lọc theo Cơ sở y tế.</li>
                 <li>Sử dụng tính năng <strong>Xuất báo cáo (Excel)</strong> để tải số liệu toàn thành phố về máy.</li>
               </ul>
             </div>
