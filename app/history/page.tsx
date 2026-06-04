@@ -41,8 +41,8 @@ export default function HistoryPage() {
       const vacList = await vacListRes.json();
       
       setHealthReports(healthData.data || []);
-      setVaccinationReports(vacData.data || []);
-      setVaccines(vacList || []);
+      setVaccinationReports(Array.isArray(vacData) ? vacData : (vacData.data || []));
+      setVaccines(Array.isArray(vacList) ? vacList : (vacList.data || []));
     } catch (e) {
       console.error(e);
     }
