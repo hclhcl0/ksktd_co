@@ -40,6 +40,6 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error('Registration error:', error);
-    return NextResponse.json({ error: 'Có lỗi xảy ra, vui lòng thử lại sau.' }, { status: 500 });
+    return NextResponse.json({ error: `Có lỗi xảy ra: ${error.message || 'Lỗi không xác định'}` }, { status: 500 });
   }
 }
