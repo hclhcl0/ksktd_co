@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         vaccines: vaccines.map((v: any) => ({ vaccineId: v.vaccineId, totalAllocated: Number(v.totalAllocated) })), 
         startDate, 
         endDate, 
-        status: status || 'upcoming' 
+        status: status || 'active' 
       });
       return NextResponse.json(newC);
     }
