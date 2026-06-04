@@ -65,6 +65,7 @@ export interface UnitProgress {
   co_so_y_te: string;
   reportCount: number;
   lastReportDate: string;
+  reportDates: string[];       // tập hợp ngày_kham đã nộp (YYYY-MM-DD)
   stats: StatProgress[];
   overallPct: number | null; // trung bình % các chỉ tiêu có dữ liệu
 }

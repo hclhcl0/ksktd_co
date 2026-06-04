@@ -24,12 +24,18 @@ export default function ProgressTable({ data }: ProgressTableProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterProgress, setFilterProgress] = useState('');
+  const [filterDate, setFilterDate] = useState(() => {
+    // Default to today in local time
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().split('T')[0];
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterFacility, filterStatus, filterProgress]);
+  }, [searchTerm, filterFacility, filterStatus, filterProgress, filterDate]);
   
   // Inline edit state
   const [editingUnitId, setEditingUnitId] = useState<string | null>(null);
@@ -78,8 +84,12 @@ export default function ProgressTable({ data }: ProgressTableProps) {
     const matchFacility = filterFacility ? u.co_so_y_te === filterFacility : true;
     
     let matchStatus = true;
-    if (filterStatus === 'submitted') matchStatus = u.reportCount > 0;
-    if (filterStatus === 'unsubmitted') matchStatus = u.reportCount === 0;
+    if (filterStatus === 'submitted') {
+      matchStatus = filterDate ? u.reportDates.includes(filterDate) : u.reportCount > 0;
+    }
+    if (filterStatus === 'unsubmitted') {
+      matchStatus = filterDate ? !u.reportDates.includes(filterDate) : u.reportCount === 0;
+    }
 
     let matchProgress = true;
     if (filterProgress !== '') {
@@ -157,7 +167,7 @@ export default function ProgressTable({ data }: ProgressTableProps) {
       {/* Advanced Search Panel */}
       {showAdvanced && (
         <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100 animate-in slide-in-from-top-2">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Lọc theo Cơ sở y tế</label>
               <select
@@ -184,6 +194,18 @@ export default function ProgressTable({ data }: ProgressTableProps) {
               </select>
             </div>
             <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                Lọc theo ngày
+                <span className="ml-1 text-[10px] font-normal text-slate-400">(áp dụng cho trạng thái nộp)</span>
+              </label>
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tiến độ hoàn thành</label>
               <select
                 value={filterProgress}
@@ -198,6 +220,11 @@ export default function ProgressTable({ data }: ProgressTableProps) {
               </select>
             </div>
           </div>
+          {filterStatus && filterDate && (
+            <p className="mt-3 text-xs text-blue-600 font-medium">
+              📅 Đang lọc đơn vị <strong>{filterStatus === 'submitted' ? 'đã nộp' : 'chưa nộp'}</strong> báo cáo ngày <strong>{new Date(filterDate + 'T00:00:00').toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong>
+            </p>
+          )}
         </div>
       )}
 
@@ -271,14 +298,30 @@ export default function ProgressTable({ data }: ProgressTableProps) {
                     )}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">{row.co_so_y_te}</p>
-                  <div className="mt-2">
-                    {row.reportCount > 0 ? (
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    {filterDate && filterStatus ? (
+                      // Show per-date status when date filter is active
+                      row.reportDates.includes(filterDate) ? (
+                        <span className="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                          ✓ Đã nộp ngày {new Date(filterDate + 'T00:00:00').toLocaleDateString('vi-VN')}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-red-500 font-medium bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
+                          ✗ Chưa nộp ngày {new Date(filterDate + 'T00:00:00').toLocaleDateString('vi-VN')}
+                        </span>
+                      )
+                    ) : row.reportCount > 0 ? (
                       <span className="text-[11px] text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
                         Đã nộp: {row.reportCount} báo cáo
                       </span>
                     ) : (
                       <span className="text-[11px] text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
                         Chưa nộp báo cáo
+                      </span>
+                    )}
+                    {row.lastReportDate && (
+                      <span className="text-[10px] text-slate-400">
+                        Gần nhất: {new Date(row.lastReportDate + 'T00:00:00').toLocaleDateString('vi-VN')}
                       </span>
                     )}
                   </div>

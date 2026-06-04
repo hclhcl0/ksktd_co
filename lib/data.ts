@@ -158,6 +158,7 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
     reportCount: number;
     lastDate: string;
     co_so_y_te: string;
+    reportDates: Set<string>;
   }>();
 
   for (const r of reports) {
@@ -177,12 +178,14 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
       }
       existing.reportCount += 1;
       if (r.ngay_kham > existing.lastDate) existing.lastDate = r.ngay_kham;
+      existing.reportDates.add(r.ngay_kham);
     } else {
       achievedMap.set(r.don_vi, {
         achieved: { ...current },
         reportCount: 1,
         lastDate: r.ngay_kham,
         co_so_y_te: r.co_so_y_te,
+        reportDates: new Set([r.ngay_kham]),
       });
     }
   }
@@ -218,6 +221,7 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
       co_so_y_te: unitData?.co_so_y_te ?? UNIT_TO_FACILITY[bm.don_vi] ?? '',
       reportCount: unitData?.reportCount ?? 0,
       lastReportDate: unitData?.lastDate ?? '',
+      reportDates: unitData ? Array.from(unitData.reportDates) : [],
       stats,
       overallPct,
     };
