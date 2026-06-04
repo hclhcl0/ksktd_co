@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { VaccineCampaign, VaccinationReport } from '@/lib/types';
 import { Activity, Download, FileSpreadsheet, Percent, ShieldCheck } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import PageHeader from '@/components/layout/PageHeader';
 
 export default function VaccinationDashboard() {
   const { data: session } = useSession();
@@ -70,36 +71,33 @@ export default function VaccinationDashboard() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 animate-in fade-in zoom-in-95 duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-indigo-600" />
-            Tiến độ Tiêm chủng
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">Báo cáo số liệu mũi tiêm vắc xin theo chiến dịch</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <select 
-            value={selectedCampaign} 
-            onChange={e => setSelectedCampaign(e.target.value)}
-            className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-          >
-            {campaigns.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          {((session?.user as any)?.role === 'admin' || (session?.user as any)?.role === 'admin_cdc') && (
-            <button 
-              onClick={handleExport}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 mt-0 animate-in fade-in zoom-in-95 duration-300">
+      <PageHeader
+        icon={<Activity className="w-5 h-5 text-white" />}
+        title="Tiến độ Tiêm chủng"
+        description="Báo cáo số liệu mũi tiêm vắc xin theo chiến dịch"
+        note="Chọn chiến dịch tiêm chủng ở bên dưới để xem tiến độ chi tiết. Dữ liệu cập nhật theo báo cáo của các đơn vị."
+        actions={
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedCampaign}
+              onChange={e => setSelectedCampaign(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none max-w-[180px] sm:max-w-none"
             >
-              <FileSpreadsheet className="w-4 h-4" /> Xuất Excel
+              {campaigns.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-medium transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Xuất Excel</span>
             </button>
-          )}
-        </div>
-      </div>
+          </div>
+        }
+      />
 
       {detailsLoading ? (
         <div className="py-20 text-center text-slate-500 flex flex-col items-center">

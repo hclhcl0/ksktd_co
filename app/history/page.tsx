@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Activity, Trash2, Calendar, FileText, Search, Edit2 } from 'lucide-react';
 import { HealthReport, VaccinationReport } from '@/lib/types';
 import EditReportModal from '@/components/history/EditReportModal';
+import PageHeader from '@/components/layout/PageHeader';
 
 export default function HistoryPage() {
   const { data: session } = useSession();
@@ -111,16 +112,13 @@ export default function HistoryPage() {
   const filteredVac = getFilteredVacReports();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 animate-in fade-in zoom-in-95 duration-300">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <FileText className="w-6 h-6 text-indigo-600" />
-          Lịch sử Báo cáo
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          {isAdmin ? 'Quản lý, tìm kiếm và xóa báo cáo của các đơn vị' : 'Xem lại các báo cáo đã nộp của đơn vị bạn'}
-        </p>
-      </div>
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 mt-0">
+      <PageHeader
+        icon={<FileText className="w-5 h-5 text-white" />}
+        title="Lịch sử Báo cáo"
+        description={isAdmin ? 'Quản lý, tìm kiếm và xóa báo cáo của các đơn vị' : 'Xem lại các báo cáo đã nộp của đơn vị bạn'}
+        note="Bạn có thể sửa hoặc xóa báo cáo trong phạm vi ngày nộp và ngày hôm sau. Sau thời hạn này vui lòng liên hệ Admin."
+      />
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
         <div className="flex border-b border-slate-100">

@@ -63,12 +63,12 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href={(role === 'admin' || role === 'admin_cdc') ? '/dashboard' : '/submit-report'} className="flex items-center gap-2.5 group">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 shadow-md shadow-blue-600/30 group-hover:bg-blue-700 transition-colors">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 shadow-md shadow-blue-600/30 group-hover:bg-blue-700 transition-colors flex-shrink-0">
               <Activity className="w-5 h-5 text-white" />
             </div>
-            <div className="hidden sm:block">
+            <div>
               <p className="text-sm font-bold text-slate-800 leading-tight">Khám Sức khỏe Toàn dân</p>
-              <p className="text-xs text-blue-600 font-medium leading-tight">Thành phố Đà Nẵng</p>
+              <p className="text-xs text-blue-600 font-medium leading-tight hidden sm:block">Thành phố Đà Nẵng</p>
             </div>
           </Link>
 

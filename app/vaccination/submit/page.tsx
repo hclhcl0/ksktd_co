@@ -113,28 +113,37 @@ export default function SubmitVaccinationPage() {
   if (loading) return <div className="p-8 text-center mt-20">Đang tải dữ liệu...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 mt-16 animate-in fade-in zoom-in-95 duration-300">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8 mt-0 animate-in fade-in zoom-in-95 duration-300">
       <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
         <div className="bg-indigo-600 px-6 py-8 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-32 h-32 bg-indigo-400 opacity-20 rounded-full blur-xl"></div>
           
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm border border-white/20 shadow-inner">
-              <Activity className="w-8 h-8 text-white" />
+          <div className="relative z-10 flex items-center gap-3 sm:gap-4">
+            <div className="p-2.5 sm:p-3 bg-white/20 rounded-2xl backdrop-blur-sm border border-white/20 shadow-inner">
+              <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight mb-1 drop-shadow-sm">
+              <h1 className="text-lg sm:text-2xl font-bold tracking-tight mb-0.5 sm:mb-1 drop-shadow-sm">
                 Báo cáo Tiêm chủng Vắc xin
               </h1>
-              <p className="text-indigo-100 font-medium text-sm flex items-center gap-2">
+              <p className="text-indigo-100 font-medium text-xs sm:text-sm flex items-center gap-2">
                 Đơn vị: <span className="bg-white/20 px-2 py-0.5 rounded-md">{session?.user?.name || 'Đang tải...'}</span>
               </p>
             </div>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="px-4 sm:px-6 pt-3 pb-0">
+          <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+            <span className="text-amber-500 text-base flex-shrink-0 mt-0.5">💡</span>
+            <p className="text-xs text-amber-800 leading-relaxed">
+              Mỗi đơn vị chỉ được nộp <strong>1 báo cáo/ngày</strong> cho mỗi vắc xin. Có thể sửa hoặc xóa báo cáo trong phạm vi ngày nộp và ngày hôm sau.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-6">
           {campaigns.length === 0 ? (
             <div className="text-center py-10 bg-slate-50 rounded-xl border border-slate-200">
               <Activity className="w-12 h-12 text-slate-300 mx-auto mb-3" />
