@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ShieldCheck, Building2, Copy, CheckCheck, UserPlus, Pencil, Trash2, Activity, Target } from 'lucide-react';
 import UserModal from './UserModal';
+import AssignUnitGroupsModal from './AssignUnitGroupsModal';
 
 interface AccountsTableProps {
   accounts: Account[];
@@ -19,6 +20,7 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
   const [resettingId, setResettingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<Account | null>(null);
+  const [assigningGroupsUser, setAssigningGroupsUser] = useState<Account | null>(null);
 
   const fetchAccounts = () => {
     fetch('/api/accounts?_t=' + Date.now(), { cache: 'no-store' })
@@ -297,13 +299,22 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                         <Pencil className="w-3.5 h-3.5" /> Sửa
                       </button>
                       {account.role === 'unit' && (
-                        <button
-                          onClick={() => window.open(`/unit-dashboard/${encodeURIComponent(account.displayName)}`, '_blank')}
-                          className="text-xs font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
-                          title="Xem Dashboard đơn vị"
-                        >
-                          <Activity className="w-3.5 h-3.5" /> Dashboard
-                        </button>
+                        <>
+                          <button
+                            onClick={() => window.open(`/unit-dashboard/${encodeURIComponent(account.displayName)}`, '_blank')}
+                            className="text-xs font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                            title="Xem Dashboard đơn vị"
+                          >
+                            <Activity className="w-3.5 h-3.5" /> Dashboard
+                          </button>
+                          <button
+                            onClick={() => setAssigningGroupsUser(account)}
+                            className="text-xs font-medium text-fuchsia-600 hover:text-fuchsia-700 bg-fuchsia-50 hover:bg-fuchsia-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                            title="Cấp đối tượng khám"
+                          >
+                            <Target className="w-3.5 h-3.5" /> Cấp đối tượng
+                          </button>
+                        </>
                       )}
                       {account.username !== 'admin' && (
                         <button
@@ -398,6 +409,22 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                   >
                     <Pencil className="w-3.5 h-3.5" /> Sửa
                   </button>
+                  {account.role === 'unit' && (
+                    <>
+                      <button
+                        onClick={() => window.open(`/unit-dashboard/${encodeURIComponent(account.displayName)}`, '_blank')}
+                        className="text-xs font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                      >
+                        <Activity className="w-3.5 h-3.5" /> Dashboard
+                      </button>
+                      <button
+                        onClick={() => setAssigningGroupsUser(account)}
+                        className="text-xs font-medium text-fuchsia-600 hover:text-fuchsia-700 bg-fuchsia-50 hover:bg-fuchsia-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                      >
+                        <Target className="w-3.5 h-3.5" /> Cấp đối tượng
+                      </button>
+                    </>
+                  )}
                   {account.username !== 'admin' && (
                     <button
                       onClick={() => handleDelete(account.username)}
@@ -434,12 +461,22 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
         </div>
       )}
 
-      <UserModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        user={editingUser}
-        onSaved={() => fetchAccounts()}
-      />
+      {isModalOpen && (
+        <UserModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          user={editingUser}
+          onSaved={() => fetchAccounts()}
+        />
+      )}
+
+      {assigningGroupsUser && (
+        <AssignUnitGroupsModal
+          account={assigningGroupsUser}
+          onClose={() => setAssigningGroupsUser(null)}
+          onSuccess={() => setAssigningGroupsUser(null)}
+        />
+      )}
     </div>
   );
 }
