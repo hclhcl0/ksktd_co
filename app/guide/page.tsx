@@ -133,7 +133,7 @@ export default function GuidePage() {
               <li>Bạn có thể cập nhật lại bất kỳ lúc nào nếu chỉ tiêu thay đổi.</li>
             </ul>
             <NoteBox type="warn">
-              <strong>Mỗi đơn vị tự chịu trách nhiệm</strong> về tính chính xác của chỉ tiêu mình đã nhập. Admin CDC chỉ theo dõi và không can thiệp vào số liệu chỉ tiêu của từng đơn vị.
+              <strong>Mỗi đơn vị tự chịu trách nhiệm</strong> về tính chính xác của chỉ tiêu mình đã nhập. Admin CDC có thể hỗ trợ nhập hoặc điều chỉnh nếu cần thiết.
             </NoteBox>
           </SubSection>
 
@@ -188,7 +188,7 @@ export default function GuidePage() {
               <li>Nếu một đơn vị chưa nhập, hãy liên hệ và nhắc đơn vị đó vào mục <strong>"Chỉ tiêu của tôi"</strong> để tự nhập.</li>
             </ul>
             <NoteBox type="info">
-              Admin không có quyền chỉnh sửa chỉ tiêu của đơn vị. Mỗi đơn vị tự quản lý số liệu chỉ tiêu của mình.
+              Mỗi đơn vị tự quản lý số liệu chỉ tiêu của mình. Tuy nhiên, Admin có quyền hỗ trợ nhập hoặc cập nhật trực tiếp tại Bảng điều hành (nhấn nút ✏️ Cập nhật chỉ tiêu).
             </NoteBox>
           </SubSection>
 

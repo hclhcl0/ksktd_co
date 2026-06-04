@@ -54,17 +54,16 @@ export default function ProgressTable({ data }: ProgressTableProps) {
 
   const handleSave = async (don_vi: string) => {
     setIsSaving(true);
-    const payload: Partial<Record<string, number | null>> = {};
-    Object.keys(formData).forEach((k) => {
+    const details = Object.keys(formData).map((k) => {
       const val = formData[k].trim();
-      payload[k] = val === '' ? null : Number(val);
+      return { groupKey: k, target: val === '' ? null : Number(val) };
     });
 
     try {
       const res = await fetch(`/api/benchmarks/${encodeURIComponent(don_vi)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ details }),
       });
 
       if (res.ok) {

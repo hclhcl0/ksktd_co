@@ -16,13 +16,7 @@ export async function PUT(
     const role = (session.user as any).role;
     const don_vi = decodeURIComponent(encodedDonVi);
 
-    // Admin không được phép ghi đè chỉ tiêu — đơn vị tự chịu trách nhiệm
-    if (role === 'admin' || role === 'admin_cdc') {
-      return NextResponse.json(
-        { success: false, error: 'Admin không có quyền sửa chỉ tiêu. Chỉ đơn vị mới được tự cập nhật chỉ tiêu của mình.' },
-        { status: 403 }
-      );
-    }
+    // Cho phép Admin cập nhật chỉ tiêu thay cho đơn vị nếu cần thiết
 
     // Đơn vị chỉ được cập nhật chỉ tiêu của chính mình
     if (role === 'unit') {
