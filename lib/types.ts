@@ -6,7 +6,8 @@ export interface DemographicGroup {
   icon: string | null;
   color: string | null;
   isActive: boolean;
-  createdAt: string;
+  don_vi: string | null;
+  createdAt: string | Date;
 }
 
 export interface HealthReportData {

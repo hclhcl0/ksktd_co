@@ -49,13 +49,13 @@ export async function GET() {
       const headerRow1 = ['STT', 'Đơn vị', 'Tiến độ chung (%)'];
       const headerRow2 = ['', '', ''];
       
-      progress.units[0].stats.forEach(s => {
-        headerRow1.push(s.label, '', '');
+      activeGroups.forEach(g => {
+        headerRow1.push(g.name, '', '');
         headerRow2.push('Đã khám', 'Chỉ tiêu', '%');
       });
       
       // Merge Title across all columns
-      const totalCols = 3 + progress.units[0].stats.length * 3;
+      const totalCols = 3 + activeGroups.length * 3;
       wsSummary.mergeCells(1, 1, 1, totalCols);
 
       // Add Header Rows
@@ -74,13 +74,13 @@ export async function GET() {
       wsSummary.mergeCells(2, 2, 3, 2); // Đơn vị
       wsSummary.mergeCells(2, 3, 3, 3); // Tiến độ chung
       
-      progress.units[0].stats.forEach((s, i) => {
+      activeGroups.forEach((g, i) => {
         const startCol = 4 + i * 3;
         wsSummary.mergeCells(2, startCol, 2, startCol + 2);
       });
 
       // Track Totals
-      const totals = progress.units[0].stats.map(() => ({ achieved: 0, target: 0 }));
+      const totals = activeGroups.map(() => ({ achieved: 0, target: 0 }));
 
       // Add Data Rows
       progress.units.forEach((u, idx) => {
@@ -89,13 +89,20 @@ export async function GET() {
           u.don_vi,
           u.overallPct !== null ? u.overallPct : ''
         ];
-        u.stats.forEach((s, i) => {
-          rowData.push(s.achieved);
-          rowData.push(s.target !== null ? s.target : '');
-          rowData.push(s.pct !== null ? s.pct : '');
-          
-          totals[i].achieved += s.achieved;
-          if (s.target !== null) totals[i].target += s.target;
+        activeGroups.forEach((g, i) => {
+          const s = u.stats.find(stat => stat.key === g.key);
+          if (s) {
+            rowData.push(s.achieved);
+            rowData.push(s.target !== null ? s.target : '');
+            rowData.push(s.pct !== null ? s.pct : '');
+            
+            totals[i].achieved += s.achieved;
+            if (s.target !== null) totals[i].target += s.target;
+          } else {
+            rowData.push(0);
+            rowData.push('');
+            rowData.push('');
+          }
         });
         
         const dataRow = wsSummary.addRow(rowData);

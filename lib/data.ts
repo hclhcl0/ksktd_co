@@ -25,6 +25,19 @@ export const getActiveGroups = cache(async (): Promise<DemographicGroup[]> => {
   });
 });
 
+export const getUnitActiveGroups = cache(async (don_vi: string): Promise<DemographicGroup[]> => {
+  return prisma.demographicGroup.findMany({
+    where: { 
+      isActive: true,
+      OR: [
+        { don_vi: null },
+        { don_vi: don_vi }
+      ]
+    },
+    orderBy: { createdAt: 'asc' }
+  });
+});
+
 export const getAllReports = cache(async (): Promise<HealthReport[]> => {
   const reports = await prisma.healthReport.findMany({
     orderBy: { created_at: 'desc' },
@@ -185,7 +198,7 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
         co_so_y_te: r.co_so_y_te,
         reportDates: new Set()
       };
-      groups.forEach(g => existing!.achieved[g.key] = 0);
+      // We don't need to initialize achieved here since we'll just populate it from details
       achievedMap.set(r.don_vi, existing);
     }
     
@@ -209,7 +222,10 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
     const unitData = achievedMap.get(bm.don_vi);
     if (!unitData) unitsWith0Reports.push(bm.don_vi);
 
-    const stats: StatProgress[] = groups.map((g) => {
+    // Filter groups: global groups (don_vi is null) + custom groups for this unit
+    const unitGroups = groups.filter(g => !g.don_vi || g.don_vi === bm.don_vi);
+
+    const stats: StatProgress[] = unitGroups.map((g) => {
       const achieved = unitData?.achieved[g.key] ?? 0;
       const targetData = bm.details.find(d => d.groupKey === g.key);
       const target = targetData ? targetData.target : null;

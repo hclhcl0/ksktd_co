@@ -1,7 +1,8 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { getProgressDashboard } from '@/lib/data';
+import { getProgressDashboard, getAllReports, getUnitActiveGroups } from '@/lib/data';
+import { getBenchmarks } from '@/lib/benchmarks_db';
 import { Activity, Target, TrendingUp, Calendar, CheckCircle2 } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -17,11 +18,11 @@ export default async function MyDashboardPage() {
   if (role !== 'unit' || !unitName) redirect('/login');
 
   // Lấy dữ liệu báo cáo của đơn vị
-  const reports = await prisma.healthReport.findMany({
-    where: { don_vi: unitName },
-    include: { details: true },
-    orderBy: { ngay_kham: 'asc' },
-  });
+  const [reports, myBenchmarks, activeGroups] = await Promise.all([
+    getAllReports(),
+    getBenchmarks(),
+    getUnitActiveGroups(unitName)
+  ]);
 
   // Lấy progress hiện tại
   const progressData = await getProgressDashboard();
@@ -31,8 +32,8 @@ export default async function MyDashboardPage() {
   const cumulativeByDate: Record<string, number> = {};
   let totalSoFar = 0;
   
-  reports.forEach(r => {
-    const dailyTotal = r.details.reduce((sum, d) => sum + d.count, 0);
+  reports.forEach((r: any) => {
+    const dailyTotal = r.details.reduce((sum: number, d: any) => sum + d.count, 0);
     totalSoFar += dailyTotal;
     cumulativeByDate[r.ngay_kham] = totalSoFar;
   });

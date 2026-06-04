@@ -4,7 +4,22 @@ import { auth } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const session = await auth();
+    const role = (session?.user as any)?.role;
+    const don_vi = session?.user?.name; // unit name
+
+    let whereClause = {};
+    if (role === 'unit' && don_vi) {
+      whereClause = {
+        OR: [
+          { don_vi: null },
+          { don_vi: don_vi }
+        ]
+      };
+    }
+
     const groups = await prisma.demographicGroup.findMany({
+      where: whereClause,
       orderBy: { createdAt: 'asc' },
     });
     return NextResponse.json(groups);
@@ -29,7 +44,8 @@ export async function POST(request: Request) {
         shortLabel: data.shortLabel,
         icon: data.icon || '👥',
         color: data.color || '#3b82f6',
-        isActive: data.isActive ?? true
+        isActive: data.isActive ?? true,
+        don_vi: data.don_vi || null
       }
     });
 
