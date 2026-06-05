@@ -4,10 +4,24 @@ import { auth } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const session = await auth();
+    let override = false;
+    const role = (session?.user as any)?.role;
+    if (role === 'unit' && session?.user?.name) {
+      const acc = await prisma.account.findUnique({ where: { username: session.user.name } });
+      if (acc?.allowEditOverride) {
+        override = true;
+      }
+    }
+
     const settings = await prisma.systemSetting.findMany();
     const settingsMap = settings.reduce((acc, s) => ({ ...acc, [s.key]: s.value }), {});
+    
+    // Nếu được đặc cách, trả về true luôn bất chấp cài đặt chung
+    const isAllowed = override || (settingsMap['allow_unit_report_edit'] ?? 'true') === 'true';
+
     return NextResponse.json({
-      allow_unit_report_edit: settingsMap['allow_unit_report_edit'] ?? 'true',
+      allow_unit_report_edit: isAllowed ? 'true' : 'false',
     });
   } catch (error) {
     return NextResponse.json({ error: 'Server Error' }, { status: 500 });

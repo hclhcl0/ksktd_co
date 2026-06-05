@@ -219,6 +219,11 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
                 <td className="px-5 py-3.5 text-slate-400 text-xs">{idx + 1}</td>
                 <td className="px-5 py-3.5">
                   <span className="font-medium text-slate-800">{account.displayName}</span>
+                  {account.allowEditOverride && (
+                    <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase" title="Được đặc cách">
+                      Đặc cách
+                    </span>
+                  )}
                 </td>
                 <td className="px-5 py-3.5">
                   <div className="flex items-center gap-2">
@@ -356,6 +361,11 @@ export default function AccountsTable({ accounts: initialAccounts }: AccountsTab
               <div>
                 <span className="text-xs text-slate-400 mr-2">#{idx + 1}</span>
                 <span className="font-semibold text-slate-800 text-sm">{account.displayName}</span>
+                {account.allowEditOverride && (
+                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase" title="Được đặc cách">
+                    Đặc cách
+                  </span>
+                )}
               </div>
               {account.status === 'pending' ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">

@@ -42,8 +42,9 @@ export async function DELETE(
     if (!report) return NextResponse.json({ success: false, error: 'Không tìm thấy báo cáo' }, { status: 404 });
 
     if (!isAdmin) {
+      const acc = await prisma.account.findUnique({ where: { username: session.user?.name || '' } });
       const setting = await prisma.systemSetting.findUnique({ where: { key: 'allow_unit_report_edit' } });
-      if (setting?.value === 'false') {
+      if (setting?.value === 'false' && !acc?.allowEditOverride) {
         return NextResponse.json({ success: false, error: 'Hệ thống đã khóa tính năng xóa báo cáo.' }, { status: 403 });
       }
       
@@ -86,8 +87,9 @@ export async function PUT(
     }
 
     if (role === 'unit') {
+      const acc = await prisma.account.findUnique({ where: { username: session.user?.name || '' } });
       const setting = await prisma.systemSetting.findUnique({ where: { key: 'allow_unit_report_edit' } });
-      if (setting?.value === 'false') {
+      if (setting?.value === 'false' && !acc?.allowEditOverride) {
         return NextResponse.json({ success: false, error: 'Hệ thống đã khóa tính năng sửa báo cáo.' }, { status: 403 });
       }
 
