@@ -188,7 +188,7 @@ export default function GuidePage() {
               <li>Nếu một đơn vị chưa nhập, hãy liên hệ và nhắc đơn vị đó vào mục <strong>"Chỉ tiêu của tôi"</strong> để tự nhập.</li>
             </ul>
             <NoteBox type="info">
-              Mỗi đơn vị tự quản lý số liệu chỉ tiêu của mình. Tuy nhiên, Admin có quyền hỗ trợ nhập hoặc cập nhật trực tiếp tại Bảng điều hành (nhấn nút ✏️ Cập nhật chỉ tiêu).
+              Mỗi đơn vị tự chịu trách nhiệm quản lý số liệu chỉ tiêu của mình. Admin không được phép sửa ghi đè số liệu chỉ tiêu của đơn vị.
             </NoteBox>
           </SubSection>
 

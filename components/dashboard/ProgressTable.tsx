@@ -37,47 +37,6 @@ export default function ProgressTable({ data }: ProgressTableProps) {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterFacility, filterUnit, filterStatus, filterProgress, filterDate]);
-  
-  // Inline edit state
-  const [editingUnitId, setEditingUnitId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [isSaving, setIsSaving] = useState(false);
-
-  const startEdit = (unit: UnitProgress) => {
-    const initial: Record<string, string> = {};
-    unit.stats.forEach((s) => {
-      initial[s.key] = s.target !== null ? String(s.target) : '';
-    });
-    setFormData(initial);
-    setEditingUnitId(unit.don_vi);
-  };
-
-  const handleSave = async (don_vi: string) => {
-    setIsSaving(true);
-    const details = Object.keys(formData).map((k) => {
-      const val = formData[k].trim();
-      return { groupKey: k, target: val === '' ? null : Number(val) };
-    });
-
-    try {
-      const res = await fetch(`/api/benchmarks/${encodeURIComponent(don_vi)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ details }),
-      });
-
-      if (res.ok) {
-        router.refresh();
-        setEditingUnitId(null);
-      } else {
-        alert('Có lỗi xảy ra khi lưu chỉ tiêu.');
-      }
-    } catch (err) {
-      alert('Có lỗi xảy ra khi lưu chỉ tiêu.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const filteredUnits = data.units.filter((u) => {
     const matchSearch = u.don_vi.toLowerCase().includes(searchTerm.toLowerCase());
@@ -284,33 +243,6 @@ export default function ProgressTable({ data }: ProgressTableProps) {
                 <div className="flex-1 pr-4">
                   <h3 className="font-bold text-slate-800 text-base sm:text-lg flex items-center gap-2">
                     {row.don_vi}
-                    {isAdmin && editingUnitId !== row.don_vi && (
-                      <button 
-                        onClick={() => startEdit(row)} 
-                        className="text-slate-400 hover:text-blue-600 transition-colors bg-slate-50 p-1.5 rounded-md border border-slate-100"
-                        title="Cập nhật chỉ tiêu"
-                      >
-                         <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    {isAdmin && editingUnitId === row.don_vi && (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleSave(row.don_vi)}
-                          disabled={isSaving}
-                          className="p-1.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-md border border-emerald-100 transition-all"
-                        >
-                          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                        </button>
-                        <button
-                          onClick={() => setEditingUnitId(null)}
-                          disabled={isSaving}
-                          className="p-1.5 text-slate-500 bg-slate-50 hover:bg-slate-100 rounded-md border border-slate-200 transition-all"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">{row.co_so_y_te}</p>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -375,18 +307,7 @@ export default function ProgressTable({ data }: ProgressTableProps) {
                      <div className="flex items-center gap-2 mb-2">
                        <span className="text-xs font-bold text-slate-700">{s.label}</span>
                      </div>
-                     {editingUnitId === row.don_vi ? (
-                       <input
-                          type="number"
-                          min="0"
-                          placeholder="Trống"
-                          value={formData[s.key] || ''}
-                          onChange={(e) => setFormData({ ...formData, [s.key]: e.target.value })}
-                          className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                     ) : (
-                       <ProgressCell stat={s} />
-                     )}
+                     <ProgressCell stat={s} />
                    </div>
                 ))}
               </div>
