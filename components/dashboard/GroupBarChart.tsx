@@ -44,54 +44,41 @@ export default function GroupBarChart({ data }: GroupBarChartProps) {
         </div>
       </div>
       
-      <ChartContainer config={chartConfig} className="w-full h-[320px]">
+      <ChartContainer config={chartConfig} className="w-full h-[360px]">
         <BarChart
           accessibilityLayer
+          layout="vertical"
           data={chartData}
-          margin={{ top: 8, right: 12, left: 0, bottom: 40 }}
-          barSize={36}
+          margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+          barSize={20}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} vertical={true} />
           <XAxis
-            dataKey="name"
-            tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
-            axisLine={false}
-            tickLine={false}
-            angle={-20}
-            textAnchor="end"
-            interval={0}
-          />
-          <YAxis
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
+            type="number"
+            tick={{ fontSize: 12, fill: '#94a3b8' }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v) => formatNumber(v)}
-            width={55}
+          />
+          <YAxis
+            type="category"
+            dataKey="label"
+            tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
+            axisLine={false}
+            tickLine={false}
+            width={160}
           />
           <ChartTooltip
-            cursor={{ fill: '#f8fafc', radius: 8 }}
-            content={<ChartTooltipContent hideLabel />}
+            cursor={{ fill: '#f8fafc', radius: 4 }}
+            content={<ChartTooltipContent hideIndicator={false} />}
           />
-          <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+          <Bar dataKey="total" radius={[0, 4, 4, 0]}>
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Bar>
         </BarChart>
       </ChartContainer>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2 pt-3 border-t border-slate-100">
-        {data.map((d) => (
-          <div key={d.key} className="flex items-center gap-1.5">
-            <span
-              className="inline-block w-2.5 h-2.5 rounded-sm"
-              style={{ backgroundColor: d.color }}
-            />
-            <span className="text-xs text-slate-500">{d.label}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
