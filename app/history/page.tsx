@@ -22,6 +22,7 @@ export default function HistoryPage() {
   const [dateFilter, setDateFilter] = useState<string>('');
   const [unitFilter, setUnitFilter] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [systemAllowEdit, setSystemAllowEdit] = useState(true);
 
   // Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -31,18 +32,21 @@ export default function HistoryPage() {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const [healthRes, vacRes, vacListRes] = await Promise.all([
+      const [healthRes, vacRes, vacListRes, settingsRes] = await Promise.all([
         fetch('/api/reports'),
         fetch('/api/vaccination/reports'),
-        fetch('/api/vaccination/campaigns?type=vaccines')
+        fetch('/api/vaccination/campaigns?type=vaccines'),
+        fetch('/api/settings')
       ]);
       const healthData = await healthRes.json();
       const vacData = await vacRes.json();
       const vacList = await vacListRes.json();
+      const settingsData = await settingsRes.json();
       
       setHealthReports(healthData.data || []);
       setVaccinationReports(Array.isArray(vacData) ? vacData : (vacData.data || []));
       setVaccines(Array.isArray(vacList) ? vacList : (vacList.data || []));
+      setSystemAllowEdit(settingsData.allow_unit_report_edit === 'true');
     } catch (e) {
       console.error(e);
     }
@@ -83,6 +87,7 @@ export default function HistoryPage() {
 
   const isEditable = (report: HealthReport | VaccinationReport) => {
     if (isAdmin) return true;
+    if (!systemAllowEdit) return false;
     const reportDay = new Date(report.created_at).toISOString().split('T')[0];
     const deadline = new Date(reportDay);
     deadline.setDate(deadline.getDate() + 1);

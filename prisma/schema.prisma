@@ -179,3 +179,9 @@ model VaccinationReportData {
   @@unique([reportId, groupKey])
   @@index([reportId])
 }
+
+model SystemSetting {
+  key       String   @id // e.g., 'allow_unit_report_edit'
+  value     String   // e.g., 'true', 'false'
+  updatedAt DateTime @updatedAt
+}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteVaccinationReport, updateVaccinationReport, getVaccinationReports } from '@/lib/vaccination_data';
 import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export async function DELETE(
   _request: NextRequest,
@@ -18,6 +19,11 @@ export async function DELETE(
     if (!report) return NextResponse.json({ success: false, error: 'Không tìm thấy báo cáo' }, { status: 404 });
 
     if (!isAdmin) {
+      const setting = await prisma.systemSetting.findUnique({ where: { key: 'allow_unit_report_edit' } });
+      if (setting?.value === 'false') {
+        return NextResponse.json({ success: false, error: 'Hệ thống đã khóa tính năng xóa báo cáo.' }, { status: 403 });
+      }
+
       if (report.don_vi !== session.user?.name) {
         return NextResponse.json({ success: false, error: 'Không có quyền xóa báo cáo của đơn vị khác.' }, { status: 403 });
       }
@@ -60,6 +66,11 @@ export async function PUT(
     }
 
     if (role === 'unit') {
+      const setting = await prisma.systemSetting.findUnique({ where: { key: 'allow_unit_report_edit' } });
+      if (setting?.value === 'false') {
+        return NextResponse.json({ success: false, error: 'Hệ thống đã khóa tính năng sửa báo cáo.' }, { status: 403 });
+      }
+
       const reportDay = new Date(report.created_at).toISOString().split('T')[0];
       const deadline = new Date(reportDay);
       deadline.setDate(deadline.getDate() + 1);

@@ -26,6 +26,7 @@ const adminMenuLinks = [
   { href: '/benchmarks',            label: 'Xem chỉ tiêu',        icon: Target    },
   { href: '/accounts',              label: 'Tài khoản',            icon: Users     },
   { href: '/admin/demographics',    label: 'Cài đặt Đối tượng',   icon: Settings  },
+  { href: '/admin/settings',        label: 'Cài đặt chung',       icon: Settings  },
 ];
 
 export default function Navbar() {
