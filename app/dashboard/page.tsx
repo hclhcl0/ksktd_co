@@ -1,6 +1,7 @@
 import { getDashboardStats, getProgressDashboard } from '@/lib/data';
 import KpiCard from '@/components/dashboard/KpiCard';
 import GroupBarChart from '@/components/dashboard/GroupBarChart';
+import SystemProgressChart from '@/components/dashboard/SystemProgressChart';
 import ReportsTable from '@/components/dashboard/ReportsTable';
 import ProgressTable from '@/components/dashboard/ProgressTable';
 import PageHeader from '@/components/layout/PageHeader';
@@ -95,9 +96,13 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Bar Chart */}
-      <div className="mb-8 animate-fade-in">
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 animate-fade-in">
+        {/* Bar Chart */}
         <GroupBarChart data={stats.groupTotals} />
+        
+        {/* Radial Progress Chart */}
+        <SystemProgressChart data={progress.systemGroupStats || []} />
       </div>
 
       {/* Progress Table (Benchmarking) */}
