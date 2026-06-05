@@ -22,6 +22,7 @@ export async function GET() {
 
     return NextResponse.json({
       allow_unit_report_edit: isAllowed ? 'true' : 'false',
+      edit_timeout_hours: parseInt(settingsMap['edit_timeout_hours'] || '48', 10)
     });
   } catch (error) {
     return NextResponse.json({ error: 'Server Error' }, { status: 500 });

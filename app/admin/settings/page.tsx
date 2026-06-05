@@ -9,12 +9,14 @@ export default function SystemSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [allowEdit, setAllowEdit] = useState(true);
+  const [timeoutHours, setTimeoutHours] = useState('48');
 
   useEffect(() => {
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         setAllowEdit(data.allow_unit_report_edit === 'true');
+        setTimeoutHours(data.edit_timeout_hours?.toString() || '48');
         setLoading(false);
       });
   }, []);
@@ -26,7 +28,8 @@ export default function SystemSettingsPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          allow_unit_report_edit: allowEdit ? 'true' : 'false'
+          allow_unit_report_edit: allowEdit ? 'true' : 'false',
+          edit_timeout_hours: timeoutHours
         }),
       });
       if (res.ok) {
@@ -84,6 +87,26 @@ export default function SystemSettingsPage() {
                 }`}
               />
             </button>
+          </div>
+
+          {/* Timeout Block */}
+          <div className="flex items-center justify-between gap-4 pt-6 border-t border-slate-100">
+            <div>
+              <h3 className="font-semibold text-slate-800 text-lg">Giới hạn thời gian tự sửa báo cáo</h3>
+              <p className="text-sm text-slate-500 mt-1 max-w-xl">
+                Số giờ tối đa mà đơn vị được phép tự sửa báo cáo của mình sau khi nộp thành công.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="1"
+                value={timeoutHours}
+                onChange={(e) => setTimeoutHours(e.target.value)}
+                className="w-20 px-3 py-2 text-center font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+              />
+              <span className="text-sm font-medium text-slate-500">Giờ</span>
+            </div>
           </div>
 
           <div className="pt-6 border-t border-slate-100 flex justify-end">

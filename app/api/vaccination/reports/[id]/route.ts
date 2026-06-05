@@ -28,12 +28,14 @@ export async function DELETE(
       if (report.don_vi !== session.user?.name) {
         return NextResponse.json({ success: false, error: 'Không có quyền xóa báo cáo của đơn vị khác.' }, { status: 403 });
       }
-      const reportDay = new Date(report.created_at).toISOString().split('T')[0];
-      const deadline = new Date(reportDay);
-      deadline.setDate(deadline.getDate() + 1);
-      const todayDay = new Date().toISOString().split('T')[0];
-      if (todayDay > deadline.toISOString().split('T')[0]) {
-        return NextResponse.json({ success: false, error: 'Báo cáo đã quá hạn chỉnh sửa (hết ngày hôm sau). Vui lòng liên hệ Admin.' }, { status: 403 });
+
+      const timeoutSetting = await prisma.systemSetting.findUnique({ where: { key: 'edit_timeout_hours' } });
+      const timeoutHours = parseInt(timeoutSetting?.value || '48', 10);
+      const reportTime = new Date(report.created_at).getTime();
+      const deadlineTime = reportTime + timeoutHours * 60 * 60 * 1000;
+      
+      if (Date.now() > deadlineTime) {
+        return NextResponse.json({ success: false, error: `Báo cáo đã quá hạn tự xóa (giới hạn ${timeoutHours} giờ sau khi nộp). Vui lòng liên hệ Admin.` }, { status: 403 });
       }
     }
 
@@ -73,12 +75,13 @@ export async function PUT(
         return NextResponse.json({ success: false, error: 'Hệ thống đã khóa tính năng sửa báo cáo.' }, { status: 403 });
       }
 
-      const reportDay = new Date(report.created_at).toISOString().split('T')[0];
-      const deadline = new Date(reportDay);
-      deadline.setDate(deadline.getDate() + 1);
-      const todayDay = new Date().toISOString().split('T')[0];
-      if (todayDay > deadline.toISOString().split('T')[0]) {
-        return NextResponse.json({ success: false, error: 'Báo cáo đã quá hạn chỉnh sửa (hết ngày hôm sau). Vui lòng liên hệ Admin.' }, { status: 403 });
+      const timeoutSetting = await prisma.systemSetting.findUnique({ where: { key: 'edit_timeout_hours' } });
+      const timeoutHours = parseInt(timeoutSetting?.value || '48', 10);
+      const reportTime = new Date(report.created_at).getTime();
+      const deadlineTime = reportTime + timeoutHours * 60 * 60 * 1000;
+      
+      if (Date.now() > deadlineTime) {
+        return NextResponse.json({ success: false, error: `Báo cáo đã quá hạn tự chỉnh sửa (giới hạn ${timeoutHours} giờ sau khi nộp). Vui lòng liên hệ Admin.` }, { status: 403 });
       }
       if (report.don_vi !== session.user?.name) {
         return NextResponse.json({ success: false, error: 'Không có quyền sửa báo cáo của đơn vị khác.' }, { status: 403 });

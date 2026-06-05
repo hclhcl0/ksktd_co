@@ -23,6 +23,7 @@ export default function HistoryPage() {
   const [unitFilter, setUnitFilter] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [systemAllowEdit, setSystemAllowEdit] = useState(true);
+  const [editTimeoutHours, setEditTimeoutHours] = useState(48);
 
   // Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -47,6 +48,7 @@ export default function HistoryPage() {
       setVaccinationReports(Array.isArray(vacData) ? vacData : (vacData.data || []));
       setVaccines(Array.isArray(vacList) ? vacList : (vacList.data || []));
       setSystemAllowEdit(settingsData.allow_unit_report_edit === 'true');
+      setEditTimeoutHours(settingsData.edit_timeout_hours || 48);
     } catch (e) {
       console.error(e);
     }
@@ -88,11 +90,12 @@ export default function HistoryPage() {
   const isEditable = (report: HealthReport | VaccinationReport) => {
     if (isAdmin) return true;
     if (!systemAllowEdit) return false;
-    const reportDay = new Date(report.created_at).toISOString().split('T')[0];
-    const deadline = new Date(reportDay);
-    deadline.setDate(deadline.getDate() + 1);
-    const todayDay = new Date().toISOString().split('T')[0];
-    return todayDay <= deadline.toISOString().split('T')[0];
+    
+    // Calculate exact deadline based on created_at and editTimeoutHours
+    const reportTime = new Date(report.created_at).getTime();
+    const deadlineTime = reportTime + editTimeoutHours * 60 * 60 * 1000;
+    
+    return Date.now() <= deadlineTime;
   };
 
   const getFilteredHealthReports = () => {
@@ -122,7 +125,7 @@ export default function HistoryPage() {
         icon={<FileText className="w-5 h-5 text-white" />}
         title="Lịch sử Báo cáo"
         description={isAdmin ? 'Quản lý, tìm kiếm và xóa báo cáo của các đơn vị' : 'Xem lại các báo cáo đã nộp của đơn vị bạn'}
-        note="Bạn có thể sửa hoặc xóa báo cáo trong phạm vi ngày nộp và ngày hôm sau. Sau thời hạn này vui lòng liên hệ Admin."
+        note={`Bạn có thể tự sửa hoặc xóa báo cáo trong vòng ${editTimeoutHours} giờ kể từ lúc nộp. Nếu quá hạn, vui lòng liên hệ Admin.`}
       />
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
