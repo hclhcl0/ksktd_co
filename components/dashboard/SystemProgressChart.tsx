@@ -110,9 +110,14 @@ export default function SystemProgressChart({ data }: SystemProgressChartProps) 
               />
               <span className="text-xs font-medium text-slate-600">{entry.name}</span>
             </div>
-            <span className="text-xs font-bold" style={{ color: entry.fill }}>
-              {entry.actualPct}%
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500">
+                {entry.achieved.toLocaleString('vi-VN')} / {entry.target!.toLocaleString('vi-VN')}
+              </span>
+              <span className="text-xs font-bold w-10 text-right" style={{ color: entry.fill }}>
+                {entry.actualPct}%
+              </span>
+            </div>
           </div>
         ))}
       </div>
