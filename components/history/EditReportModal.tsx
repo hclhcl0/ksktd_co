@@ -20,7 +20,13 @@ export default function EditReportModal({ isOpen, onClose, report, type, onSaved
 
   useEffect(() => {
     if (report) {
-      setFormData({ ...report });
+      const flatData: any = { ...report };
+      if (report.details) {
+        report.details.forEach(d => {
+          flatData[d.groupKey] = d.count;
+        });
+      }
+      setFormData(flatData);
     }
   }, [report]);
 
@@ -38,11 +44,24 @@ export default function EditReportModal({ isOpen, onClose, report, type, onSaved
     setLoading(true);
     setError('');
     try {
+      // Reconstruct the report format
+      const { id, created_at, details, don_vi, co_so_y_te, ...rest } = formData;
+      
+      const newDetails = GROUP_DEFINITIONS.map(g => ({
+        groupKey: g.key,
+        count: parseInt(formData[g.key] || 0, 10)
+      })).filter(d => d.count > 0); // or save all, but let's save all
+
+      const payload = {
+        ...rest,
+        details: newDetails
+      };
+
       const endpoint = type === 'health' ? `/api/reports/${report.id}` : `/api/vaccination/reports/${report.id}`;
       const res = await fetch(endpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       
