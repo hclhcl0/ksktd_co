@@ -174,10 +174,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function getProgressDashboard(): Promise<ProgressDashboard> {
-  const [reports, benchmarks, groups] = await Promise.all([
+  const [reports, benchmarks, groups, unitAccounts] = await Promise.all([
     getAllReports(),
     getBenchmarks(),
-    getActiveGroups()
+    getActiveGroups(),
+    prisma.account.findMany({ where: { role: 'unit' } })
   ]);
 
   const achievedMap = new Map<string, {
@@ -218,16 +219,26 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
   const unitsNoBenchmark: string[] = [];
   const unitsWith0Reports: string[] = [];
 
-  const units: UnitProgress[] = benchmarks.map((bm) => {
-    const unitData = achievedMap.get(bm.don_vi);
-    if (!unitData) unitsWith0Reports.push(bm.don_vi);
+  const unitNames = new Set<string>();
+  unitAccounts.forEach(a => unitNames.add(a.username));
+  benchmarks.forEach(b => unitNames.add(b.don_vi));
+  for (const r of reports) {
+    unitNames.add(r.don_vi);
+  }
+
+  const units: UnitProgress[] = Array.from(unitNames).map((don_vi) => {
+    const acc = unitAccounts.find(a => a.username === don_vi);
+    const bm = benchmarks.find(b => b.don_vi === don_vi);
+    const unitData = achievedMap.get(don_vi);
+
+    if (!unitData) unitsWith0Reports.push(don_vi);
 
     // Filter groups: global groups + specific applied units
-    const unitGroups = groups.filter(g => g.isGlobal || g.appliedUnits.includes(bm.don_vi));
+    const unitGroups = groups.filter(g => g.isGlobal || g.appliedUnits.includes(don_vi));
 
     const stats: StatProgress[] = unitGroups.map((g) => {
       const achieved = unitData?.achieved[g.key] ?? 0;
-      const targetData = bm.details.find(d => d.groupKey === g.key);
+      const targetData = bm?.details.find(d => d.groupKey === g.key);
       const target = targetData ? targetData.target : null;
       let pct: number | null = null;
       if (target !== null && target > 0) {
@@ -242,12 +253,12 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
       : null;
 
     if (overallPct === null && validStats.length === 0) {
-      unitsNoBenchmark.push(bm.don_vi);
+      unitsNoBenchmark.push(don_vi);
     }
 
     return {
-      don_vi: bm.don_vi,
-      co_so_y_te: unitData?.co_so_y_te ?? UNIT_TO_FACILITY[bm.don_vi] ?? '',
+      don_vi: don_vi,
+      co_so_y_te: unitData?.co_so_y_te ?? acc?.facilityName ?? UNIT_TO_FACILITY[don_vi] ?? '',
       reportCount: unitData?.reportCount ?? 0,
       lastReportDate: unitData?.lastDate ?? '',
       reportDates: unitData ? Array.from(unitData.reportDates) : [],
