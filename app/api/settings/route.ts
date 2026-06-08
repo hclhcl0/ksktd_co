@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { logActivity } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -49,6 +50,14 @@ export async function PUT(request: Request) {
         });
       }
     }
+
+    await logActivity({
+      unitName: 'Admin',
+      username: session?.user?.name || 'admin',
+      action: 'UPDATE',
+      entityType: 'settings',
+      details: `Thay đổi cài đặt hệ thống: ${JSON.stringify(data)}`
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

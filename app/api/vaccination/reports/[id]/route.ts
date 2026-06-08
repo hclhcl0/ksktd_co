@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { deleteVaccinationReport, updateVaccinationReport, getVaccinationReports } from '@/lib/vaccination_data';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity } from '@/lib/logger';
 
 export async function DELETE(
   _request: NextRequest,
@@ -41,6 +42,16 @@ export async function DELETE(
 
     const deleted = await deleteVaccinationReport(id);
     if (!deleted) return NextResponse.json({ success: false, error: 'Không thể xóa' }, { status: 500 });
+    
+    await logActivity({
+      unitName: report.don_vi,
+      username: session.user?.name || 'unknown',
+      action: 'DELETE',
+      entityType: 'vaccination_report',
+      entityId: id,
+      details: `Xóa báo cáo tiêm chủng ngày ${report.ngay_tiem}`
+    });
+
     return NextResponse.json({ success: true, message: 'Xóa thành công' });
   } catch {
     return NextResponse.json({ success: false, error: 'Lỗi máy chủ' }, { status: 500 });
@@ -91,6 +102,15 @@ export async function PUT(
     const body = await request.json();
     const updated = await updateVaccinationReport(id, body);
     
+    await logActivity({
+      unitName: report.don_vi,
+      username: session.user?.name || 'unknown',
+      action: 'UPDATE',
+      entityType: 'vaccination_report',
+      entityId: id,
+      details: `Sửa báo cáo tiêm chủng ngày ${report.ngay_tiem}`
+    });
+
     return NextResponse.json({ success: true, data: updated });
   } catch {
     return NextResponse.json({ success: false, error: 'Lỗi máy chủ' }, { status: 500 });

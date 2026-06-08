@@ -3,6 +3,7 @@ import { getVaccinationReports, addVaccinationReport } from '@/lib/vaccination_d
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GROUP_DEFINITIONS } from '@/lib/constants';
+import { logActivity } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,15 @@ export async function POST(request: Request) {
       nguoi_nop_bao_cao,
       don_vi,
       details
+    });
+
+    await logActivity({
+      unitName: don_vi,
+      username: session.user.name || 'unknown',
+      action: 'CREATE',
+      entityType: 'vaccination_report',
+      entityId: newReport.id,
+      details: `Nộp báo cáo tiêm chủng ngày ${ngay_tiem}`
     });
 
     return NextResponse.json(newReport, { status: 201 });

@@ -6,6 +6,8 @@ import { HealthReport } from '@/lib/types';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+import { logActivity } from '@/lib/logger';
+
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -74,6 +76,15 @@ export async function POST(request: NextRequest) {
     };
 
     await addReport(newReport);
+
+    await logActivity({
+      unitName: don_vi,
+      username: session.user?.name || 'unknown',
+      action: 'CREATE',
+      entityType: 'health_report',
+      entityId: newReport.id,
+      details: `Nộp báo cáo khám sức khỏe ngày ${ngay_kham}`
+    });
 
     return NextResponse.json({ success: true, data: newReport }, { status: 201 });
   } catch {

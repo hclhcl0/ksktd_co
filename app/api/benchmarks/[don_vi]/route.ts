@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { upsertBenchmark, BenchmarkDataRecord } from '@/lib/benchmarks_db';
 import { auth } from '@/lib/auth';
+import { logActivity } from '@/lib/logger';
 
 export async function PUT(
   request: Request,
@@ -48,6 +49,16 @@ export async function PUT(
     });
 
     const updated = await upsertBenchmark(don_vi, parsed);
+
+    await logActivity({
+      unitName: session.user?.name || 'unknown',
+      username: session.user?.name || 'unknown',
+      action: 'UPDATE',
+      entityType: 'benchmark',
+      entityId: don_vi,
+      details: `Cập nhật chỉ tiêu cho đơn vị ${don_vi}`
+    });
+
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
     console.error(error);

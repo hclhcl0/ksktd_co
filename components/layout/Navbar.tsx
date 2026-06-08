@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Activity, LayoutDashboard, FileText, Menu, X,
-  LogOut, ChevronDown, Users, Target, Settings, BookOpen, Building2
+  LogOut, ChevronDown, Users, Target, Settings, BookOpen, Building2, History
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
@@ -41,6 +41,7 @@ const adminMenuGroups = [
     links: [
       { href: '/admin/demographics',    label: 'Nhóm Đối tượng',      icon: Users     },
       { href: '/admin/settings',        label: 'Hệ thống',            icon: Settings  },
+      { href: '/admin/activity-logs',   label: 'Nhật ký hoạt động',    icon: History   },
     ]
   }
 ];

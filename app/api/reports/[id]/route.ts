@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getReportById, deleteReport, updateReport } from '@/lib/data';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity } from '@/lib/logger';
 
 export async function GET(
   _request: NextRequest,
@@ -65,6 +66,16 @@ export async function DELETE(
 
     const deleted = await deleteReport(id);
     if (!deleted) return NextResponse.json({ success: false, error: 'Không thể xóa' }, { status: 500 });
+    
+    await logActivity({
+      unitName: report.don_vi,
+      username: session.user?.name || 'unknown',
+      action: 'DELETE',
+      entityType: 'health_report',
+      entityId: id,
+      details: `Xóa báo cáo khám sức khỏe ngày ${report.ngay_kham}`
+    });
+
     return NextResponse.json({ success: true, message: 'Xóa thành công' });
   } catch {
     return NextResponse.json({ success: false, error: 'Lỗi máy chủ' }, { status: 500 });
@@ -112,6 +123,15 @@ export async function PUT(
     // Validate body if needed, but for now we trust the client side format
     const updated = await updateReport(id, body);
     
+    await logActivity({
+      unitName: report.don_vi,
+      username: session.user?.name || 'unknown',
+      action: 'UPDATE',
+      entityType: 'health_report',
+      entityId: id,
+      details: `Sửa báo cáo khám sức khỏe ngày ${report.ngay_kham}`
+    });
+
     return NextResponse.json({ success: true, data: updated });
   } catch {
     return NextResponse.json({ success: false, error: 'Lỗi máy chủ' }, { status: 500 });
