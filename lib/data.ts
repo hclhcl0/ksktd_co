@@ -220,18 +220,23 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
   const unitsWith0Reports: string[] = [];
 
   // Nguồn chuẩn: don_vi từ báo cáo + chỉ tiêu (đây là key nhất quán).
-  // Tài khoản unit được dùng để tra thêm thông tin cơ sở y tế cho những đơn vị chưa có báo cáo.
+  // Đơn vị nộp báo cáo dùng session.user.name (displayName) làm don_vi.
+  // Bổ sung thêm displayName của các tài khoản mới chưa nộp báo cáo/chỉ tiêu.
   const unitNames = new Set<string>();
   benchmarks.forEach(b => unitNames.add(b.don_vi));
   for (const r of reports) {
     unitNames.add(r.don_vi);
   }
+  // Bổ sung displayName của tài khoản unit mới (chưa có báo cáo hoặc chỉ tiêu)
+  unitAccounts.forEach(a => {
+    if (a.displayName && !unitNames.has(a.displayName)) {
+      unitNames.add(a.displayName);
+    }
+  });
 
   const units: UnitProgress[] = Array.from(unitNames).map((don_vi) => {
-    // Tìm tài khoản khớp: ưu tiên facilityName, fallback về username
-    const acc = unitAccounts.find(a =>
-      (a.facilityName && a.facilityName === don_vi) || a.username === don_vi
-    );
+    // Tìm tài khoản khớp theo displayName (key nhất quán với báo cáo)
+    const acc = unitAccounts.find(a => a.displayName === don_vi);
     const bm = benchmarks.find(b => b.don_vi === don_vi);
     const unitData = achievedMap.get(don_vi);
 
