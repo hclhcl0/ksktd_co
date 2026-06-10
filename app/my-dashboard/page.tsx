@@ -125,7 +125,15 @@ export default async function MyDashboardPage() {
                     {stat.achieved.toLocaleString('vi-VN')}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {stat.target !== null ? stat.target.toLocaleString('vi-VN') : <span className="text-slate-400 italic">Chưa có</span>}
+                    {stat.hasNoBenchmark ? (
+                      <span className="text-slate-500 text-xs font-semibold bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                        Tự động
+                      </span>
+                    ) : stat.target !== null ? (
+                      stat.target.toLocaleString('vi-VN')
+                    ) : (
+                      <span className="text-slate-400 italic">Chưa có</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right font-medium">
                     {stat.pct !== null ? (

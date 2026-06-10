@@ -81,7 +81,7 @@ export default function MyBenchmarksPage() {
     }
   };
 
-  const totalFilled = groups.filter(g => data[g.key] !== null).length;
+  const totalFilled = groups.filter(g => g.hasNoBenchmark || data[g.key] !== null).length;
 
   if (status === 'loading') {
     return (
@@ -135,14 +135,20 @@ export default function MyBenchmarksPage() {
                 <p className="text-xs text-slate-400 mt-0.5">{g.shortLabel}</p>
               </div>
               <div className="flex-shrink-0">
-                <input
-                  type="number"
-                  min="0"
-                  value={data[g.key] === null ? '' : String(data[g.key])}
-                  onChange={e => handleChange(g.key, e.target.value)}
-                  placeholder="—"
-                  className="w-28 px-3 py-2 text-right text-base font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                />
+                {g.hasNoBenchmark ? (
+                  <span className="inline-block px-3 py-2 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded-xl">
+                    Tự động tính
+                  </span>
+                ) : (
+                  <input
+                    type="number"
+                    min="0"
+                    value={data[g.key] === null ? '' : String(data[g.key])}
+                    onChange={e => handleChange(g.key, e.target.value)}
+                    placeholder="—"
+                    className="w-28 px-3 py-2 text-right text-base font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
+                )}
               </div>
             </div>
           ))}

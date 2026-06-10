@@ -345,6 +345,28 @@ export default function ProgressTable({ data }: ProgressTableProps) {
 }
 
 function ProgressCell({ stat }: { stat: StatProgress }) {
+  if (stat.hasNoBenchmark) {
+    const pct = stat.pct ?? 0;
+    return (
+      <div className="w-full">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-[11px] font-semibold text-slate-600">
+            Đã khám: {formatNumber(stat.achieved)}
+          </span>
+          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full uppercase">
+            Tự động
+          </span>
+        </div>
+        <div className="h-1.5 w-full rounded-full overflow-hidden bg-slate-100">
+          <div
+            className={`h-full bg-violet-500 transition-all duration-500`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (stat.target === null) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-[11px] text-slate-400">

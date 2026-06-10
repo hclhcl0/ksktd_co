@@ -8,6 +8,7 @@ export interface DemographicGroup {
   isActive: boolean;
   isGlobal: boolean;
   appliedUnits: string[];
+  hasNoBenchmark: boolean;
   createdAt: string | Date;
 }
 
@@ -61,6 +62,7 @@ export interface StatProgress {
   achieved: number;          // tổng đã khám (cộng gộp tất cả báo cáo)
   target: number | null;     // chỉ tiêu (null = chưa nhập)
   pct: number | null;        // phần trăm (null nếu chưa có chỉ tiêu)
+  hasNoBenchmark?: boolean;
 }
 
 export interface UnitProgress {

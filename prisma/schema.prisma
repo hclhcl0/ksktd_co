@@ -137,6 +137,7 @@ model DemographicGroup {
   isActive    Boolean  @default(true)
   isGlobal    Boolean  @default(true)
   appliedUnits String[] @default([])
+  hasNoBenchmark Boolean @default(false)
   createdAt   DateTime @default(now())
 
   healthData  HealthReportData[]

@@ -248,12 +248,17 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
     const stats: StatProgress[] = unitGroups.map((g) => {
       const achieved = unitData?.achieved[g.key] ?? 0;
       const targetData = bm?.details.find(d => d.groupKey === g.key);
-      const target = targetData ? targetData.target : null;
+      let target = targetData ? targetData.target : null;
       let pct: number | null = null;
-      if (target !== null && target > 0) {
+      
+      if (g.hasNoBenchmark) {
+        target = achieved;
+        pct = achieved > 0 ? 100 : null;
+      } else if (target !== null && target > 0) {
         pct = Math.round((achieved / target) * 100);
       }
-      return { key: g.key, label: g.name, icon: g.icon || '', achieved, target, pct };
+      
+      return { key: g.key, label: g.name, icon: g.icon || '', achieved, target, pct, hasNoBenchmark: g.hasNoBenchmark };
     });
 
     const validStats = stats.filter((s) => s.pct !== null);
@@ -303,10 +308,20 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
   const systemGroupStats: StatProgress[] = groups.map(g => {
     const data = systemGroupStatsMap.get(g.key)!;
     let pct: number | null = null;
-    if (data.target > 0) {
+    if (g.hasNoBenchmark) {
+      pct = data.achieved > 0 ? 100 : null;
+    } else if (data.target > 0) {
       pct = Math.round((data.achieved / data.target) * 100);
     }
-    return { key: g.key, label: g.name, icon: g.icon || '', achieved: data.achieved, target: data.target > 0 ? data.target : null, pct };
+    return { 
+      key: g.key, 
+      label: g.name, 
+      icon: g.icon || '', 
+      achieved: data.achieved, 
+      target: g.hasNoBenchmark ? (data.achieved > 0 ? data.achieved : null) : (data.target > 0 ? data.target : null), 
+      pct,
+      hasNoBenchmark: g.hasNoBenchmark
+    };
   });
 
   return { units, systemOverallPct, unitsWith0Reports, unitsNoBenchmark, systemGroupStats };

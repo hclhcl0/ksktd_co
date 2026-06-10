@@ -19,7 +19,7 @@ export default function DemographicsPage() {
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<DemographicGroup | null>(null);
   const [formData, setFormData] = useState({
-    key: '', name: '', shortLabel: '', icon: '👥', color: '#3b82f6', isGlobal: true
+    key: '', name: '', shortLabel: '', icon: '👥', color: '#3b82f6', isGlobal: true, hasNoBenchmark: false
   });
 
   // Assign Units Modal State
@@ -56,12 +56,13 @@ export default function DemographicsPage() {
       setEditingGroup(group);
       setFormData({
         key: group.key, name: group.name, shortLabel: group.shortLabel,
-        icon: group.icon || '👥', color: group.color || '#3b82f6', isGlobal: group.isGlobal
+        icon: group.icon || '👥', color: group.color || '#3b82f6', isGlobal: group.isGlobal,
+        hasNoBenchmark: group.hasNoBenchmark || false
       });
     } else {
       setEditingGroup(null);
       setFormData({
-        key: '', name: '', shortLabel: '', icon: '👥', color: '#3b82f6', isGlobal: true
+        key: '', name: '', shortLabel: '', icon: '👥', color: '#3b82f6', isGlobal: true, hasNoBenchmark: false
       });
     }
     setIsGroupModalOpen(true);
@@ -180,8 +181,15 @@ export default function DemographicsPage() {
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: `${group.color}15`, color: group.color || '#3b82f6' }}>
                             <span className="text-xl">{group.icon}</span>
                           </div>
-                          <div>
-                            <p className="font-semibold text-slate-800">{group.name}</p>
+                           <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-slate-800">{group.name}</p>
+                              {group.hasNoBenchmark && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                  Chỉ tiêu động
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-slate-500">Viết tắt: {group.shortLabel}</p>
                           </div>
                         </div>
@@ -313,6 +321,20 @@ export default function DemographicsPage() {
                   <div>
                     <p className="font-semibold text-slate-800">Áp dụng cho TOÀN HỆ THỐNG</p>
                     <p className="text-xs text-slate-500">Mặc định hiển thị cho tất cả các Trạm Y tế.</p>
+                  </div>
+                </label>
+              </div>
+              <div className="pt-2">
+                <label className="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={formData.hasNoBenchmark}
+                    onChange={e => setFormData({...formData, hasNoBenchmark: e.target.checked})}
+                    className="w-5 h-5 text-amber-600 rounded-lg border-slate-300 focus:ring-amber-500"
+                  />
+                  <div>
+                    <p className="font-semibold text-slate-800">Không tính chỉ tiêu cố định</p>
+                    <p className="text-xs text-slate-500">Khám bao nhiêu tính chỉ tiêu bấy nhiêu (tự động đạt 100% khi có lượt khám).</p>
                   </div>
                 </label>
               </div>

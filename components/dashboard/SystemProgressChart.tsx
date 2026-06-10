@@ -34,6 +34,7 @@ export default function SystemProgressChart({ data }: SystemProgressChartProps) 
       actualPct: d.pct ?? 0,
       achieved: d.achieved,
       target: d.target,
+      hasNoBenchmark: d.hasNoBenchmark,
       fill: COLORS[i % COLORS.length]
     }));
 
@@ -86,7 +87,7 @@ export default function SystemProgressChart({ data }: SystemProgressChartProps) 
                       {data.actualPct}%
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {data.achieved.toLocaleString('vi-VN')} / {data.target ? data.target.toLocaleString('vi-VN') : '0 (chưa có chỉ tiêu)'}
+                      {data.achieved.toLocaleString('vi-VN')} / {data.hasNoBenchmark ? `${data.achieved.toLocaleString('vi-VN')} (Tự động)` : (data.target ? data.target.toLocaleString('vi-VN') : '0 (chưa có chỉ tiêu)')}
                     </p>
                   </div>
                 );
@@ -110,7 +111,7 @@ export default function SystemProgressChart({ data }: SystemProgressChartProps) 
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-slate-500">
-                {entry.achieved.toLocaleString('vi-VN')} / {entry.target ? entry.target.toLocaleString('vi-VN') : '0 (chưa có chỉ tiêu)'}
+                {entry.achieved.toLocaleString('vi-VN')} / {entry.hasNoBenchmark ? `${entry.achieved.toLocaleString('vi-VN')} (Tự động)` : (entry.target ? entry.target.toLocaleString('vi-VN') : '0 (chưa có chỉ tiêu)')}
               </span>
               <span className="text-xs font-bold w-10 text-right" style={{ color: entry.fill }}>
                 {entry.actualPct}%

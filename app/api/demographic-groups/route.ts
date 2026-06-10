@@ -46,7 +46,8 @@ export async function POST(request: Request) {
         color: data.color || '#3b82f6',
         isActive: data.isActive ?? true,
         isGlobal: data.isGlobal ?? true,
-        appliedUnits: data.appliedUnits || []
+        appliedUnits: data.appliedUnits || [],
+        hasNoBenchmark: data.hasNoBenchmark ?? false
       }
     });
 
@@ -85,6 +86,7 @@ export async function PUT(request: Request) {
     
     if (data.isGlobal !== undefined) updateData.isGlobal = data.isGlobal;
     if (data.appliedUnits !== undefined) updateData.appliedUnits = data.appliedUnits;
+    if (data.hasNoBenchmark !== undefined) updateData.hasNoBenchmark = data.hasNoBenchmark;
 
     const updated = await prisma.demographicGroup.update({
       where: { id },
