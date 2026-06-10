@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShieldCheck, Loader2, Save } from 'lucide-react';
+import { ShieldCheck, Loader2, Save, DatabaseBackup, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function SystemSettingsPage() {
@@ -10,6 +10,7 @@ export default function SystemSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [allowEdit, setAllowEdit] = useState(true);
   const [timeoutHours, setTimeoutHours] = useState('48');
+  const [backingUp, setBackingUp] = useState(false);
 
   useEffect(() => {
     fetch('/api/settings')
@@ -42,6 +43,27 @@ export default function SystemSettingsPage() {
       alert('Có lỗi xảy ra khi lưu cấu hình.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleBackup = async () => {
+    setBackingUp(true);
+    try {
+      const res = await fetch('/api/admin/backup');
+      if (!res.ok) throw new Error('Backup thất bại');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = res.headers.get('Content-Disposition')?.split('filename="')[1]?.replace('"', '') || 'backup.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Không thể tạo bản sao lưu. Vui lòng thử lại.');
+    } finally {
+      setBackingUp(false);
     }
   };
 
@@ -117,6 +139,38 @@ export default function SystemSettingsPage() {
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Lưu thay đổi
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Backup Section */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex items-center gap-4">
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+            <DatabaseBackup className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-800">Sao lưu Dữ liệu</h1>
+            <p className="text-sm text-slate-500 mt-1">Tải về bản sao lưu toàn bộ dữ liệu hệ thống (định dạng JSON)</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-semibold text-slate-800 text-lg">Xuất toàn bộ dữ liệu</h3>
+              <p className="text-sm text-slate-500 mt-1 max-w-xl">
+                Tải về file JSON chứa toàn bộ: tài khoản, báo cáo sức khỏe, báo cáo tiêm chủng, chỉ tiêu, nhóm đối tượng, cài đặt hệ thống và nhật ký hoạt động. Nên sao lưu trước mỗi lần nâng cấp hệ thống.
+              </p>
+              <p className="text-xs text-amber-600 mt-2 font-medium">⚠️ File backup có thể chứa thông tin nhạy cảm, hãy bảo quản cẩn thận.</p>
+            </div>
+            <button
+              onClick={handleBackup}
+              disabled={backingUp}
+              className="flex-shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              {backingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {backingUp ? 'Đang tạo...' : 'Tải bản sao lưu'}
             </button>
           </div>
         </div>
