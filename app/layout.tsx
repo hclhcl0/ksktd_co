@@ -12,6 +12,7 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 import Footer from '@/components/layout/Footer';
+import SupportBar from '@/components/layout/SupportBar';
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -29,11 +30,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={cn("font-sans", geist.variable)}>
-      <body className="min-h-screen bg-slate-50 font-sans antialiased flex flex-col">
+      <body className="min-h-screen bg-slate-50 font-sans antialiased flex flex-col pb-9">
         <AuthProvider>
           <Navbar />
           <main className="pt-16 flex-1">{children}</main>
           <Footer />
+          <SupportBar />
         </AuthProvider>
       </body>
     </html>
