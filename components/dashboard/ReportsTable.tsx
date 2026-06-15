@@ -1,12 +1,18 @@
+'use client';
+
+import { useState } from 'react';
 import { UnitSummary } from '@/lib/types';
 import { formatNumber, formatDate } from '@/lib/utils';
-import { Building2, CalendarDays, TrendingUp } from 'lucide-react';
+import { Building2, CalendarDays, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ReportsTableProps {
   data: UnitSummary[];
 }
 
 export default function ReportsTable({ data }: ReportsTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   if (data.length === 0) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 text-center">
@@ -20,6 +26,13 @@ export default function ReportsTable({ data }: ReportsTableProps) {
   }
 
   const maxTotal = Math.max(...data.map((d) => d.total), 1);
+
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevPage = () => setCurrentPage((p) => Math.max(1, p - 1));
+  const handleNextPage = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -51,9 +64,9 @@ export default function ReportsTable({ data }: ReportsTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {data.map((row, idx) => (
+            {paginatedData.map((row, idx) => (
               <tr key={row.don_vi} className="hover:bg-blue-50/30 transition-colors duration-100">
-                <td className="px-5 py-4 text-slate-400 font-medium">{idx + 1}</td>
+                <td className="px-5 py-4 text-slate-400 font-medium">{startIndex + idx + 1}</td>
                 <td className="px-5 py-4">
                   <div className="font-semibold text-slate-800">{row.don_vi}</div>
                   <div className="mt-1.5 h-1.5 bg-slate-100 rounded-full overflow-hidden w-40">
@@ -88,12 +101,12 @@ export default function ReportsTable({ data }: ReportsTableProps) {
 
       {/* Mobile cards */}
       <div className="md:hidden divide-y divide-slate-100">
-        {data.map((row, idx) => (
+        {paginatedData.map((row, idx) => (
           <div key={row.don_vi} className="p-4 hover:bg-blue-50/30 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-slate-400">#{idx + 1}</span>
+                  <span className="text-xs font-bold text-slate-400">#{startIndex + idx + 1}</span>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
                     {row.reportCount} báo cáo
                   </span>
@@ -113,6 +126,36 @@ export default function ReportsTable({ data }: ReportsTableProps) {
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50">
+          <p className="text-sm text-slate-500">
+            Hiển thị <span className="font-medium text-slate-700">{startIndex + 1}</span> đến <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, data.length)}</span> trong <span className="font-medium text-slate-700">{data.length}</span> đơn vị
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-white hover:text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              aria-label="Trang trước"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-sm font-medium text-slate-600 min-w-[3rem] text-center">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-white hover:text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              aria-label="Trang sau"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
