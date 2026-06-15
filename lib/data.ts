@@ -320,7 +320,8 @@ export async function getProgressDashboard(): Promise<ProgressDashboard> {
       achieved: data.achieved, 
       target: g.hasNoBenchmark ? (data.achieved > 0 ? data.achieved : null) : (data.target > 0 ? data.target : null), 
       pct,
-      hasNoBenchmark: g.hasNoBenchmark
+      hasNoBenchmark: g.hasNoBenchmark,
+      color: g.color || undefined
     };
   });
 

@@ -63,6 +63,7 @@ export interface StatProgress {
   target: number | null;     // chỉ tiêu (null = chưa nhập)
   pct: number | null;        // phần trăm (null nếu chưa có chỉ tiêu)
   hasNoBenchmark?: boolean;
+  color?: string;
 }
 
 export interface UnitProgress {

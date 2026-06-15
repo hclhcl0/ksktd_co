@@ -35,7 +35,7 @@ export default function SystemProgressChart({ data }: SystemProgressChartProps) 
       achieved: d.achieved,
       target: d.target,
       hasNoBenchmark: d.hasNoBenchmark,
-      fill: COLORS[i % COLORS.length]
+      fill: d.color || COLORS[i % COLORS.length]
     }));
 
   const chartConfig = {} satisfies ChartConfig;
