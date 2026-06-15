@@ -37,20 +37,20 @@ export default function GroupBarChart({ data }: GroupBarChartProps) {
 
   return (
     <div className="card p-5 flex flex-col justify-between h-full">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-base font-bold text-slate-800">Thống kê theo nhóm đối tượng</h2>
           <p className="text-xs text-slate-400 mt-0.5">Tổng hợp toàn hệ thống</p>
         </div>
       </div>
       
-      <ChartContainer config={chartConfig} className="w-full h-[360px]">
+      <ChartContainer config={chartConfig} className="w-full h-[420px]">
         <BarChart
           accessibilityLayer
           layout="vertical"
           data={chartData}
-          margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-          barSize={20}
+          margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+          barSize={28}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} vertical={true} />
           <XAxis
