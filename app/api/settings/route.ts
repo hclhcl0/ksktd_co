@@ -25,7 +25,9 @@ export async function GET() {
 
     const responseData: any = {
       allow_unit_report_edit: isAllowed ? 'true' : 'false',
-      edit_timeout_hours: parseInt(settingsMap['edit_timeout_hours'] || '48', 10)
+      edit_timeout_hours: parseInt(settingsMap['edit_timeout_hours'] || '48', 10),
+      exam_date_min: settingsMap['exam_date_min'] || '',
+      exam_date_max: settingsMap['exam_date_max'] || ''
     };
 
     if (isAdmin) {

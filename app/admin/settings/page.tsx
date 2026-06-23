@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShieldCheck, Loader2, Save, DatabaseBackup, Download } from 'lucide-react';
+import { ShieldCheck, Loader2, Save, DatabaseBackup, Download, CalendarRange } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function SystemSettingsPage() {
@@ -10,6 +10,8 @@ export default function SystemSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [allowEdit, setAllowEdit] = useState(true);
   const [timeoutHours, setTimeoutHours] = useState('48');
+  const [examDateMin, setExamDateMin] = useState('');
+  const [examDateMax, setExamDateMax] = useState('');
   const [backingUp, setBackingUp] = useState(false);
   const [externalApiKey, setExternalApiKey] = useState('');
 
@@ -19,6 +21,8 @@ export default function SystemSettingsPage() {
       .then(data => {
         setAllowEdit(data.allow_unit_report_edit === 'true');
         setTimeoutHours(data.edit_timeout_hours?.toString() || '48');
+        setExamDateMin(data.exam_date_min || '');
+        setExamDateMax(data.exam_date_max || '');
         setExternalApiKey(data.external_api_key || '');
         setLoading(false);
       });
@@ -42,6 +46,8 @@ export default function SystemSettingsPage() {
         body: JSON.stringify({
           allow_unit_report_edit: allowEdit ? 'true' : 'false',
           edit_timeout_hours: timeoutHours,
+          exam_date_min: examDateMin,
+          exam_date_max: examDateMax,
           external_api_key: externalApiKey
         }),
       });
@@ -141,6 +147,52 @@ export default function SystemSettingsPage() {
               />
               <span className="text-sm font-medium text-slate-500">Giờ</span>
             </div>
+          </div>
+
+          {/* Exam Date Range Block */}
+          <div className="flex flex-col gap-4 pt-6 border-t border-slate-100">
+            <div>
+              <h3 className="font-semibold text-slate-800 text-lg flex items-center gap-2">
+                <CalendarRange className="w-5 h-5 text-blue-500" />
+                Giới hạn ngày thực hiện khám
+              </h3>
+              <p className="text-sm text-slate-500 mt-1 max-w-xl">
+                Khoảng ngày mà các đơn vị được phép chọn trong trường &quot;Ngày thực hiện khám&quot; khi nộp báo cáo. Để trống cả hai ô nếu không muốn giới hạn (mặc định: 7 ngày gần đây đến hôm nay).
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Từ ngày (Ngày sớm nhất)</label>
+                <input
+                  type="date"
+                  value={examDateMin}
+                  onChange={(e) => setExamDateMin(e.target.value)}
+                  className="px-3 py-2 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-full"
+                />
+              </div>
+              <span className="text-slate-400 font-medium hidden sm:block mt-5">→</span>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Đến ngày (Ngày muộn nhất)</label>
+                <input
+                  type="date"
+                  value={examDateMax}
+                  onChange={(e) => setExamDateMax(e.target.value)}
+                  className="px-3 py-2 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-full"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => { setExamDateMin(''); setExamDateMax(''); }}
+                className="px-3 py-2 text-xs font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl transition-colors whitespace-nowrap mt-5"
+              >
+                Xóa giới hạn
+              </button>
+            </div>
+            {examDateMin && examDateMax && examDateMin > examDateMax && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                ⚠️ Ngày bắt đầu không được muộn hơn ngày kết thúc.
+              </p>
+            )}
           </div>
 
           {/* API Key Integration Block */}

@@ -34,15 +34,36 @@ export default function ReportForm() {
   const [loadingGroups, setLoadingGroups] = useState(true);
 
   useEffect(() => {
-    const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000;
-    const localNow = new Date(now.getTime() - offset);
-    const max = localNow.toISOString().split('T')[0];
-    
-    const localMin = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000 - offset);
-    const min = localMin.toISOString().split('T')[0];
-    
-    setDateLimits({ min, max });
+    // Fetch date limits from admin settings, fall back to default 7-day window
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const localNow = new Date(now.getTime() - offset);
+        const todayStr = localNow.toISOString().split('T')[0];
+
+        const localMin7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000 - offset);
+        const min7Str = localMin7.toISOString().split('T')[0];
+
+        const adminMin = data.exam_date_min || '';
+        const adminMax = data.exam_date_max || '';
+
+        setDateLimits({
+          min: adminMin || min7Str,
+          max: adminMax || todayStr,
+        });
+      })
+      .catch(() => {
+        // On error, fall back to default 7-day window
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const localNow = new Date(now.getTime() - offset);
+        const max = localNow.toISOString().split('T')[0];
+        const localMin = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000 - offset);
+        const min = localMin.toISOString().split('T')[0];
+        setDateLimits({ min, max });
+      });
   }, []);
 
   useEffect(() => {
