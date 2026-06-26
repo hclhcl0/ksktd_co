@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ShieldCheck, Loader2, Save, DatabaseBackup, Download, CalendarRange } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ShieldCheck, Loader2, Save, DatabaseBackup, Download, CalendarRange, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function SystemSettingsPage() {
@@ -13,7 +13,9 @@ export default function SystemSettingsPage() {
   const [examDateMin, setExamDateMin] = useState('');
   const [examDateMax, setExamDateMax] = useState('');
   const [backingUp, setBackingUp] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [externalApiKey, setExternalApiKey] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch('/api/settings')
@@ -82,6 +84,39 @@ export default function SystemSettingsPage() {
       alert('Không thể tạo bản sao lưu. Vui lòng thử lại.');
     } finally {
       setBackingUp(false);
+    }
+  };
+
+  const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm('CẢNH BÁO: Thao tác này sẽ XÓA SẠCH dữ liệu hiện tại và nạp lại từ file backup. Nó có thể mất vài phút. Bạn có chắc chắn muốn tiếp tục không?')) {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setRestoring(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/admin/restore', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Khôi phục dữ liệu thành công!');
+        window.location.reload();
+      } else {
+        alert(data.error || 'Có lỗi xảy ra khi khôi phục.');
+      }
+    } catch (error) {
+      alert('Lỗi kết nối máy chủ khi khôi phục.');
+    } finally {
+      setRestoring(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -262,6 +297,33 @@ export default function SystemSettingsPage() {
               {backingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               {backingUp ? 'Đang tạo...' : 'Tải bản sao lưu'}
             </button>
+          </div>
+
+          {/* Khôi phục Section */}
+          <div className="flex items-start justify-between gap-4 pt-6 mt-6 border-t border-slate-100">
+            <div>
+              <h3 className="font-semibold text-slate-800 text-lg">Khôi phục từ file JSON</h3>
+              <p className="text-sm text-slate-500 mt-1 max-w-xl">
+                Nạp lại toàn bộ dữ liệu từ file backup bạn đã tải về trước đó. <strong className="text-red-500">Lưu ý: Quá trình này sẽ XÓA SẠCH toàn bộ dữ liệu hiện tại trước khi nạp!</strong>
+              </p>
+            </div>
+            <div>
+              <input 
+                type="file" 
+                accept=".json" 
+                ref={fileInputRef}
+                onChange={handleRestore}
+                className="hidden" 
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={restoring}
+                className="flex-shrink-0 px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {restoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                {restoring ? 'Đang khôi phục...' : 'Chọn file khôi phục'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
