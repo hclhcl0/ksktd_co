@@ -100,7 +100,8 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updated = await updateVaccinationReport(id, body);
+    const { ngay_tiem, nguoi_nop_bao_cao, details } = body;
+    const updated = await updateVaccinationReport(id, { ngay_tiem, nguoi_nop_bao_cao, details });
     
     await logActivity({
       unitName: report.don_vi,

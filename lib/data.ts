@@ -107,6 +107,7 @@ export async function updateReport(id: string, updates: Partial<HealthReport>): 
 
     return updated ? mapPrismaReport(updated as any) : null;
   } catch (error) {
+    console.error('Lỗi khi updateReport:', error);
     return null;
   }
 }

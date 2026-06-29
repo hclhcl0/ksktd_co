@@ -120,8 +120,9 @@ export async function PUT(
     }
 
     const body = await request.json();
+    const { ngay_kham, nguoi_nop_bao_cao, details } = body;
     // Validate body if needed, but for now we trust the client side format
-    const updated = await updateReport(id, body);
+    const updated = await updateReport(id, { ngay_kham, nguoi_nop_bao_cao, details });
     
     await logActivity({
       unitName: report.don_vi,
