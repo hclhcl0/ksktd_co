@@ -8,18 +8,26 @@ declare global {
   var pgPool: Pool | undefined;
 }
 
-const poolConfig = {
-  connectionString: process.env.POSTGRES_URL,
-  max: 10,
-  idleTimeoutMillis: 60000,
-  connectionTimeoutMillis: 10000,
-  ssl: process.env.POSTGRES_URL?.includes('supabase') ? { rejectUnauthorized: false } : undefined,
-};
+function buildPoolConfig() {
+  const connectionString = process.env.POSTGRES_URL || '';
+  const isSupabase = connectionString.includes('supabase');
+
+  // Strip sslmode from connection string to avoid conflict with ssl config below
+  const cleanUrl = connectionString.replace(/[?&]sslmode=[^&]*/g, '').replace(/[?&]pgbouncer=[^&]*/g, '').replace(/[?&]supa=[^&]*/g, '');
+
+  return {
+    connectionString: cleanUrl,
+    max: 10,
+    idleTimeoutMillis: 60000,
+    connectionTimeoutMillis: 10000,
+    // Supabase pooler uses self-signed cert — must disable verification
+    ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
+  };
+}
 
 function createPrisma(): PrismaClient {
-  // Reuse the global pool to avoid creating new connections on every request
   if (!global.pgPool) {
-    global.pgPool = new Pool(poolConfig);
+    global.pgPool = new Pool(buildPoolConfig());
   }
   const adapter = new PrismaPg(global.pgPool);
   return new PrismaClient({ adapter });
