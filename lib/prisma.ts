@@ -13,6 +13,7 @@ const poolConfig = {
   max: 10,
   idleTimeoutMillis: 60000,
   connectionTimeoutMillis: 10000,
+  ssl: process.env.POSTGRES_URL?.includes('supabase') ? { rejectUnauthorized: false } : undefined,
 };
 
 function createPrisma(): PrismaClient {
