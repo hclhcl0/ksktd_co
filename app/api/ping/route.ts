@@ -1,0 +1,15 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET() {
+  try {
+    // Query nhẹ nhất có thể để giữ Supabase luôn active
+    await prisma.$queryRaw`SELECT 1`;
+    return NextResponse.json({ 
+      status: 'ok', 
+      time: new Date().toISOString() 
+    });
+  } catch {
+    return NextResponse.json({ status: 'error' }, { status: 500 });
+  }
+}
